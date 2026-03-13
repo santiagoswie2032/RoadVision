@@ -67,15 +67,11 @@ const WelcomePage = () => {
 
           {/* Right: PM Image (Fixed/Header included) */}
           <div className="flex items-center space-x-3 md:space-x-4">
-            <div className="hidden sm:flex flex-col text-right">
-              <p className="text-xs md:text-sm font-black text-[#1a237e] leading-tight">Shri Narendra Modi</p>
-              <p className="text-[10px] md:text-xs font-bold text-[#ea580c] uppercase tracking-tighter">Prime Minister of India</p>
-            </div>
-            <div className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-[#1a237e]/10 shadow-lg">
+            <div className="w-12 h-12 md:w-20 md:h-24 rounded-[1.5rem] overflow-hidden border-2 border-[#1a237e]/10 shadow-lg">
               <img 
                 src="/pm.jpg" 
-                alt="Shri Narendra Modi" 
-                className="w-full h-full object-cover grayscale md:grayscale-0 transition-all"
+                alt="Prime Minister of India" 
+                className="w-full h-full object-cover transition-all"
               />
             </div>
           </div>

@@ -108,19 +108,24 @@ const MapPage = () => {
             <PotholeMap potholes={potholes} activeLayer={activeLayer} />
         )}
         
-        {/* Floating Map Legend - Hidden on very small screens, shown as minimal on medium */}
-        <div className="absolute top-4 right-4 md:top-6 md:right-6 z-[1000] bg-white/95 backdrop-blur-md p-3 md:p-4 rounded-xl shadow-xl border border-gray-100 min-w-[140px] md:min-w-[180px] hidden sm:block">
-           <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3 border-b border-gray-100 pb-2">Index</p>
+        {/* Floating Map Legend - Relocated to Bottom Left for clarity */}
+        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-[1000] bg-white/95 backdrop-blur-md p-3 md:p-4 rounded-xl shadow-xl border border-gray-100 min-w-[140px] md:min-w-[180px] hidden sm:block">
+           <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3 border-b border-gray-100 pb-2">Status Index</p>
            <div className="space-y-2 md:space-y-2.5">
               {[
-                { label: 'Critical', color: 'bg-red-500 shadow-red-500/50' },
-                { label: 'Standard', color: 'bg-orange-500 shadow-orange-500/50' },
-                { label: 'Minor', color: 'bg-green-500 shadow-green-500/50' },
-                { label: 'Resolved', color: 'bg-gray-600 shadow-gray-500/30' },
+                { label: 'Critical', color: 'bg-red-500 shadow-red-500/50', count: potholes.filter(p => p.severityLevel === 'high' && p.status !== 'fixed').length },
+                { label: 'Moderate', color: 'bg-orange-500 shadow-orange-500/50', count: potholes.filter(p => p.severityLevel === 'medium' && p.status !== 'fixed').length },
+                { label: 'Minor', color: 'bg-green-500 shadow-green-500/50', count: potholes.filter(p => p.severityLevel === 'low' && p.status !== 'fixed').length },
+                { label: 'Restored', color: 'bg-gray-600 shadow-gray-500/30', count: potholes.filter(p => p.status === 'fixed').length },
               ].map((item, i) => (
-                <div key={i} className="flex items-center text-[10px] md:text-xs font-bold text-gray-700">
-                   <div className={`w-2 h-2 md:w-3 md:h-3 ${item.color} rounded-full mr-2 md:mr-3 shadow-sm`}></div>
-                   {item.label}
+                <div key={i} className="flex items-center justify-between text-[10px] md:text-xs font-bold text-gray-700">
+                   <div className="flex items-center">
+                      <div className={`w-2 h-2 md:w-3 md:h-3 ${item.color} rounded-full mr-2 md:mr-3 shadow-sm`}></div>
+                      {item.label}
+                   </div>
+                   <span className={`px-1.5 py-0.5 rounded ${item.count > 0 ? 'bg-gray-100 text-gray-900' : 'bg-red-50 text-red-400 opacity-50 text-[8px]'}`}>
+                      {item.count > 0 ? item.count : 'Not Detected'}
+                   </span>
                 </div>
               ))}
            </div>
