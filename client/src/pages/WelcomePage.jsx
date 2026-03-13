@@ -160,10 +160,10 @@ const WelcomePage = () => {
       {/* Portal Footer */}
       <footer className="bg-white py-12 border-t border-gray-100 w-full">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8 items-center opacity-60">
-             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Digital_India_logo.svg/1200px-Digital_India_logo.svg.png" className="h-10 grayscale hover:grayscale-0 transition-all cursor-pointer" alt="Digital India" />
-             <img src="https://upload.wikimedia.org/wikipedia/en/thumb/9/9d/Make_in_India_Logo.svg/1200px-Make_in_India_Logo.svg.png" className="h-10 grayscale hover:grayscale-0 transition-all cursor-pointer" alt="Make in India" />
-             <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/NHAI_logo.png/1200px-NHAI_logo.png" className="h-12 grayscale hover:grayscale-0 transition-all cursor-pointer" alt="NHAI" />
+          <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8 items-center">
+             <img src="/DI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="Digital India" />
+             <img src="/MI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="Make in India" />
+             <img src="/NHAI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="NHAI" />
           </div>
           <div className="w-16 h-1 bg-[#ea580c] mx-auto mb-6 rounded-full"></div>
           <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em] max-w-2xl mx-auto leading-loose">

@@ -113,8 +113,15 @@ const Login = () => {
         </div>
         
         {/* Security Notice */}
-        <div className="mt-8 text-center text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed opacity-50 max-w-xs">
+        <div className="mt-8 text-center text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed opacity-50 max-w-xs mb-6">
            Authorized personnel only. All access is logged and recorded by the National Highway Authority surveillance center.
+        </div>
+
+        {/* Support Logos */}
+        <div className="flex items-center justify-center space-x-6 border-t border-gray-50 pt-6 w-full opacity-40 grayscale">
+            <img src="/NHAI.jpeg" className="h-4 w-auto object-contain" alt="NHAI" />
+            <img src="/DI.jpeg" className="h-4 w-auto object-contain" alt="Digital India" />
+            <img src="/MI.jpeg" className="h-4 w-auto object-contain" alt="Make in India" />
         </div>
       </div>
     </div>
