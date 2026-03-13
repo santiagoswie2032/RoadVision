@@ -1,4 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import { 
@@ -16,24 +17,74 @@ import {
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [potholes, setPotholes] = useState([]);
+  const [filteredPotholes, setFilteredPotholes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [filterSeverity, setFilterSeverity] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useContext(AuthContext);
 
   useEffect(() => {
     fetchPotholes();
   }, []);
 
+  useEffect(() => {
+    let result = [...potholes];
+    
+    if (filterSeverity !== 'all') {
+      result = result.filter(p => p.severityLevel === filterSeverity);
+    }
+    
+    if (searchQuery) {
+      result = result.filter(p => 
+        p.latitude.toString().includes(searchQuery) || 
+        p.longitude.toString().includes(searchQuery)
+      );
+    }
+    
+    setFilteredPotholes(result);
+  }, [potholes, filterSeverity, searchQuery]);
+
   const fetchPotholes = async () => {
     try {
       const { data } = await api.get('/potholes');
       setPotholes(data);
+      setFilteredPotholes(data);
     } catch (err) {
       setError('Communication failure with central database.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExport = () => {
+    if (filteredPotholes.length === 0) return;
+    
+    const headers = ['ID', 'Latitude', 'Longitude', 'Severity', 'Confidence', 'Status', 'ImageURL'];
+    const csvContent = [
+      headers.join(','),
+      ...filteredPotholes.map(p => [
+        p._id,
+        p.latitude,
+        p.longitude,
+        p.severityLevel,
+        p.detectionConfidence,
+        p.status,
+        p.imageUrl || ''
+      ].join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `road_vision_export_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleStatusUpdate = async (id, newStatus) => {
@@ -72,13 +123,34 @@ const Dashboard = () => {
         </div>
         
         <div className="flex space-x-2 md:space-x-3">
-          <button className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-white border border-gray-200 px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
-             <Filter size={14} className="md:w-4 md:h-4" />
-             <span>Filter</span>
+          <button 
+             onClick={() => navigate('/report')}
+             className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-white border border-[#ea580c]/30 text-[#ea580c] px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-orange-50 transition-all shadow-sm"
+          >
+             <AlertTriangle size={14} className="md:w-4 md:h-4" />
+             <span>File Report</span>
           </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-[#1a237e] text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-[#283593] transition-all shadow-lg shadow-blue-900/10">
+          
+          <div className="relative flex-1 md:flex-none">
+            <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <select 
+              value={filterSeverity}
+              onChange={(e) => setFilterSeverity(e.target.value)}
+              className="w-full md:w-auto pl-9 pr-4 py-2 bg-white border border-gray-200 rounded-lg text-xs md:text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm outline-none appearance-none"
+            >
+              <option value="all">All Severities</option>
+              <option value="high">High Only</option>
+              <option value="medium">Medium Only</option>
+              <option value="low">Low Only</option>
+            </select>
+          </div>
+
+          <button 
+            onClick={handleExport}
+            className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-[#1a237e] text-white px-3 md:px-4 py-2 rounded-lg text-xs md:text-sm font-bold hover:bg-[#283593] transition-all shadow-lg shadow-blue-900/10"
+          >
              <Download size={14} className="md:w-4 md:h-4" />
-             <span>Export</span>
+             <span>Export CSV</span>
           </button>
         </div>
       </div>
@@ -121,7 +193,13 @@ const Dashboard = () => {
           </div>
           <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input type="text" placeholder="Search coordinates..." className="w-full sm:w-64 lg:w-80 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white" />
+            <input 
+              type="text" 
+              placeholder="Search coordinates..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-64 lg:w-80 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white" 
+            />
           </div>
         </div>
         
@@ -138,17 +216,17 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {potholes.length === 0 ? (
+              {filteredPotholes.length === 0 ? (
                 <tr>
                   <td colSpan="6" className="px-8 py-16 text-center">
                      <div className="flex flex-col items-center opacity-40">
                         <Activity size={48} className="mb-4 text-gray-300" />
-                        <p className="text-lg font-bold text-gray-400 italic">No structural damages detected.</p>
+                        <p className="text-lg font-bold text-gray-400 italic">No structural damages found.</p>
                      </div>
                   </td>
                 </tr>
               ) : (
-                potholes.map(pothole => (
+                filteredPotholes.map(pothole => (
                   <tr key={pothole._id} className="hover:bg-gray-50/80 transition-all border-l-4 border-l-transparent hover:border-l-[#1a237e]">
                     <td className="px-6 md:px-8 py-4">
                       {pothole.imageUrl ? (
@@ -203,8 +281,12 @@ const Dashboard = () => {
                             <option value="under_repair">Repairing</option>
                             <option value="fixed">Fixed</option>
                           </select>
-                          <button className="p-2 text-gray-400 hover:text-[#1a237e] hover:bg-gray-100 rounded-lg transition-all">
-                             <MoreVertical size={16} />
+                          <button 
+                            onClick={() => navigate(`/map?lat=${pothole.latitude}&lng=${pothole.longitude}`)}
+                            className="p-2 text-gray-400 hover:text-[#1a237e] hover:bg-gray-100 rounded-lg transition-all"
+                            title="View on Map"
+                          >
+                             <MapPin size={16} />
                           </button>
                        </div>
                     </td>
@@ -216,7 +298,7 @@ const Dashboard = () => {
         </div>
         
         <div className="px-4 md:px-8 py-4 md:py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">Showing {potholes.length} active records</p>
+           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">Showing {filteredPotholes.length} records</p>
            <div className="flex space-x-2 w-full sm:w-auto">
               <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-300 rounded-lg uppercase tracking-tight">Prev</button>
               <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-700 rounded-lg uppercase tracking-tight">Next</button>

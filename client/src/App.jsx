@@ -8,19 +8,10 @@ import Dashboard from './pages/Dashboard';
 import MapPage from './pages/MapPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
+import ReportPage from './pages/ReportPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 const ProtectedRoute = ({ children }) => {
-  const context = useContext(AuthContext);
-  const user = context?.user;
-  const loading = context?.loading;
-
-  if (loading) return (
-    <div className="h-screen w-full flex items-center justify-center bg-[#f8faff]">
-        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent"></div>
-    </div>
-  );
-  if (!user) return <Navigate to="/login" replace />;
-
   return children;
 };
 
@@ -35,37 +26,49 @@ const AppRoots = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* Protected Officer Dashboard Areas */}
+        {/* Public Dashboard Areas */}
         <Route 
           path="/home" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <HomePage />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <HomePage />
+            </Layout>
           } 
         />
         
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <Dashboard />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <Dashboard />
+            </Layout>
           } 
         />
         
         <Route 
           path="/map" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <MapPage />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <MapPage />
+            </Layout>
+          } 
+        />
+
+        <Route 
+          path="/report" 
+          element={
+            <Layout>
+              <ReportPage />
+            </Layout>
+          } 
+        />
+
+        <Route 
+          path="/analytics" 
+          element={
+            <Layout>
+              <AnalyticsPage />
+            </Layout>
           } 
         />
 
