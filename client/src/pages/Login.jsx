@@ -58,7 +58,7 @@ const Login = () => {
             </h2>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-lg flex items-center text-red-700 dark:text-red-400">
+              <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-center text-red-700">
                 <AlertCircle className="w-5 h-5 mr-3 flex-shrink-0" />
                 <p className="font-bold text-xs tracking-tight">{error}</p>
               </div>

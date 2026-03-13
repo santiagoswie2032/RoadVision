@@ -1,7 +1,7 @@
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
-  Map as MapIcon, 
+  Map, 
   FileText, 
   BarChart3, 
   Settings, 
@@ -22,7 +22,7 @@ const Sidebar = ({ onClose }) => {
   const menuItems = [
     { title: t('nav.home'), icon: <Home size={20} />, path: '/' },
     { title: t('nav.dashboard'), icon: <LayoutDashboard size={20} />, path: '/dashboard' },
-    { title: t('nav.map'), icon: <MapIcon size={20} />, path: '/map' },
+    { title: t('nav.map'), icon: <Map size={20} />, path: '/map' },
     { title: t('nav.report'), icon: <FileText size={20} />, path: '/report' },
     { title: t('nav.analytics'), icon: <BarChart3 size={20} />, path: '/analytics' },
     { title: t('nav.settings'), icon: <Settings size={20} />, path: '/settings' },
