@@ -35,8 +35,8 @@ const Sidebar = ({ onClose }) => {
           <X size={20} />
         </button>
         
-        <div className="w-16 h-16 md:w-20 md:h-20 bg-white/10 rounded-full flex items-center justify-center mb-3">
-            <span className="text-3xl md:text-4xl">🏛️</span>
+        <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-full flex items-center justify-center mb-3 shadow-inner p-2">
+            <img src="/NHAI.jpeg" className="w-full h-full object-contain" alt="NHAI Logo" />
         </div>
         <h2 className="text-xs md:text-sm font-semibold text-center uppercase tracking-wider text-orange-400">Road Transport</h2>
         <p className="text-[10px] text-center text-white/60">Govt. of India</p>

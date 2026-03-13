@@ -30,12 +30,19 @@ const Layout = ({ children }) => {
         </main>
         
         {/* Subfooter */}
-        <div className="bg-white border-t border-gray-200 py-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-500 font-medium gap-2">
+        <div className="bg-white border-t border-gray-200 py-3 px-4 md:px-8 flex flex-col md:flex-row justify-between items-center text-[10px] text-gray-500 font-medium gap-4">
             <p className="text-center md:text-left">© 2026 Ministry of Road Transport and Highways. All rights reserved.</p>
-            <div className="flex space-x-4">
-                <span>Terms of Use</span>
-                <span>Privacy Policy</span>
-                <span className="text-[#1a237e] font-bold">DIGITAL INDIA INITIATIVE</span>
+            <div className="flex items-center space-x-6">
+                <div className="flex items-center space-x-4 opacity-70 grayscale hover:grayscale-0 transition-all">
+                  <img src="/DI.jpeg" className="h-6 w-auto" alt="Digital India" />
+                  <img src="/MI.jpeg" className="h-6 w-auto" alt="Make in India" />
+                </div>
+                <div className="h-4 w-px bg-gray-300 hidden sm:block"></div>
+                <div className="flex space-x-4">
+                    <span>Terms</span>
+                    <span>Privacy</span>
+                    <span className="text-[#1a237e] font-bold tracking-tighter">INDIA PORTAL</span>
+                </div>
             </div>
         </div>
       </div>
