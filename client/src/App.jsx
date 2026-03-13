@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
+import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -14,12 +15,13 @@ import SettingsPage from './pages/SettingsPage';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
+  const { t } = useLanguage();
   
   if (loading) {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center bg-[#f8faff]">
         <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent mb-4"></div>
-        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase italic">Authenticating...</p>
+        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase italic">{t('common.loading')}...</p>
       </div>
     );
   }
@@ -116,9 +118,11 @@ const AppRoots = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoots />
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <AppRoots />
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Noto+Sans+Devanagari:wght@400;500;700;900&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -6,12 +7,33 @@
 }
 
 body {
-  @apply bg-[#f8faff] text-gray-900;
+  background-color: #f8faff;
+  color: #111827;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', 'Noto Sans Devanagari', sans-serif;
+  line-height: 1.6;
 }
+
+h1, h2, h3, h4 {
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  line-height: 1.2;
+}
+
+h1 { font-size: 1.5rem; }
+@media (min-width: 768px) { h1 { font-size: 1.875rem; } }
+@media (min-width: 1024px) { h1 { font-size: 2.25rem; } }
+
+h2 { font-size: 1.25rem; }
+@media (min-width: 768px) { h2 { font-size: 1.5rem; } }
+@media (min-width: 1024px) { h2 { font-size: 1.875rem; } }
+
+h3 { font-size: 1.125rem; }
+@media (min-width: 768px) { h3 { font-size: 1.25rem; } }
+@media (min-width: 1024px) { h3 { font-size: 1.5rem; } }
 
 #root {
   min-height: 100vh;
