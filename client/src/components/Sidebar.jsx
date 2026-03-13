@@ -4,7 +4,7 @@ import {
   Map, 
   FileText, 
   BarChart3, 
-  Settings, 
+  Settings,
   LogOut,
   ChevronRight,
   X,
@@ -99,4 +99,3 @@ const Sidebar = ({ onClose }) => {
 };
 
 export default Sidebar;
-
