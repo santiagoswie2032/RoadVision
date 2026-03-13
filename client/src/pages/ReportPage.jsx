@@ -14,6 +14,7 @@ import {
   BrainCircuit,
   X,
   Plus
+  AlignLeft
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -30,7 +31,7 @@ const ReportPage = () => {
     longitude: '',
     severityLevel: 'medium',
     imageUrl: '',
-    description: '' // Backend doesn't support this yet, but we'll include it for future-proofing
+    description: ''
   });
 
   const [locating, setLocating] = useState(false);
@@ -104,7 +105,8 @@ const ReportPage = () => {
         longitude: parseFloat(formData.longitude),
         severityLevel: formData.severityLevel,
         confidence: 1.0,
-        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1544376798-89aa6b82c6cd?q=80&w=1000&auto=format&fit=crop'
+        imageUrl: formData.imageUrl || 'https://images.unsplash.com/photo-1544376798-89aa6b82c6cd?q=80&w=1000&auto=format&fit=crop',
+        description: formData.description
       });
       
       setSuccess(true);
@@ -256,6 +258,21 @@ const ReportPage = () => {
                   onChange={(e) => setFormData({...formData, imageUrl: e.target.value})}
                 />
                 <p className="text-[9px] text-gray-400 font-bold italic pl-1">Visual confirmation accelerates repair prioritization</p>
+              </div>
+
+              {/* Description Section */}
+              <div className="mb-10">
+                <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-gray-400 mb-4">
+                  <AlignLeft size={12} className="mr-2" /> 
+                  Additional Details / Observations
+                </label>
+                <textarea
+                  placeholder="E.g., Located near the north exit, causes heavy traffic slowdown..."
+                  className="w-full px-4 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-medium focus:ring-2 focus:ring-[#1a237e] focus:bg-white transition-all outline-none mb-2 min-h-[100px] resize-y"
+                  value={formData.description}
+                  onChange={(e) => setFormData({...formData, description: e.target.value})}
+                />
+                <p className="text-[9px] text-gray-400 font-bold italic pl-1">Optional context helps field officers prepare appropriate repair materials</p>
               </div>
 
               <button

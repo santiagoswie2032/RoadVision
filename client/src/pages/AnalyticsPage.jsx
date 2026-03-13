@@ -122,7 +122,7 @@ const AnalyticsPage = () => {
     }).reverse();
 
     const counts = last7Days.map(date => {
-      return potholes.filter(p => p.createdAt?.startsWith(date)).length;
+      return potholes.filter(p => p.detectedAt?.startsWith(date)).length;
     });
 
     return {
@@ -140,6 +140,28 @@ const AnalyticsPage = () => {
         },
       ],
     };
+  };
+
+  const getAvgConfidence = () => {
+    if (potholes.length === 0) return '0%';
+    const sum = potholes.reduce((acc, p) => acc + (p.detectionConfidence || 0), 0);
+    return ((sum / potholes.length) * 100).toFixed(1) + '%';
+  };
+
+  const getRepairTAT = () => {
+    const fixedPotholes = potholes.filter(p => p.status === 'fixed' && p.detectedAt && p.updatedAt);
+    if (fixedPotholes.length === 0) return 'N/A';
+    
+    const totalMs = fixedPotholes.reduce((acc, p) => {
+      return acc + (new Date(p.updatedAt) - new Date(p.detectedAt));
+    }, 0);
+    
+    const avgDays = totalMs / fixedPotholes.length / (1000 * 60 * 60 * 24);
+    return avgDays.toFixed(1) + ' Days';
+  };
+  
+  const getActiveTickets = () => {
+    return potholes.filter(p => p.status !== 'fixed').length.toString();
   };
 
   if (loading) return (
@@ -256,13 +278,13 @@ const AnalyticsPage = () => {
       {/* Summary Stats Footer */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-left">
          {[
-           { label: 'Critical Area', value: 'Zone-A', icon: <MapPin size={16}/>, color: 'red' },
-           { label: 'Avg Confidence', value: '88.4%', icon: <TrendingUp size={16}/>, color: 'blue' },
-           { label: 'Repair TAT', value: '4.2 Days', icon: <Clock3 size={16}/>, color: 'orange' },
-           { label: 'Fleet Status', value: 'Active', icon: <CheckCircle2 size={16}/>, color: 'green' }
+           { label: 'Active Reports', value: getActiveTickets(), icon: <MapPin size={16}/>, bgClass: 'bg-red-50', textClass: 'text-red-600' },
+           { label: 'Avg Confidence', value: getAvgConfidence(), icon: <TrendingUp size={16}/>, bgClass: 'bg-blue-50', textClass: 'text-blue-600' },
+           { label: 'Repair TAT', value: getRepairTAT(), icon: <Clock3 size={16}/>, bgClass: 'bg-orange-50', textClass: 'text-orange-600' },
+           { label: 'Fleet Status', value: 'Active', icon: <CheckCircle2 size={16}/>, bgClass: 'bg-green-50', textClass: 'text-green-600' }
          ].map((stat, i) => (
            <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 flex items-center space-x-3 shadow-sm">
-              <div className={`p-2 rounded-lg bg-${stat.color}-50 text-${stat.color}-600`}>
+              <div className={`p-2 rounded-lg ${stat.bgClass} ${stat.textClass}`}>
                  {stat.icon}
               </div>
               <div>
