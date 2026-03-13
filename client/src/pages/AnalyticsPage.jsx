@@ -1,0 +1,285 @@
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  PointElement,
+  LineElement,
+  Filler
+} from 'chart.js';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { 
+  BarChart3, 
+  TrendingUp, 
+  PieChart, 
+  AlertTriangle,
+  Clock3,
+  CheckCircle2,
+  Calendar
+} from 'lucide-react';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  PointElement,
+  LineElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+const AnalyticsPage = () => {
+  const [potholes, setPotholes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const { data } = await api.get('/potholes');
+      setPotholes(data);
+    } catch (err) {
+      setError('Failed to fetch analytics data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getSeverityData = () => {
+    const counts = { high: 0, medium: 0, low: 0 };
+    potholes.forEach(p => {
+      counts[p.severityLevel]++;
+    });
+    return {
+      labels: ['High Severity', 'Medium Severity', 'Low Severity'],
+      datasets: [
+        {
+          label: 'Total Reports',
+          data: [counts.high, counts.medium, counts.low],
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.8)', // Red
+            'rgba(249, 115, 22, 0.8)', // Orange
+            'rgba(34, 197, 94, 0.8)',  // Green
+          ],
+          borderColor: [
+            'rgb(239, 68, 68)',
+            'rgb(249, 115, 22)',
+            'rgb(34, 197, 94)',
+          ],
+          borderWidth: 1,
+          borderRadius: 8,
+        },
+      ],
+    };
+  };
+
+  const getStatusData = () => {
+    const counts = { reported: 0, under_repair: 0, fixed: 0 };
+    potholes.forEach(p => {
+      counts[p.status]++;
+    });
+    return {
+      labels: ['Reported', 'Repairing', 'Fixed'],
+      datasets: [
+        {
+          data: [counts.reported, counts.under_repair, counts.fixed],
+          backgroundColor: [
+            'rgba(30, 58, 138, 0.7)',  // Blue 900
+            'rgba(249, 115, 22, 0.7)', // Orange
+            'rgba(34, 197, 94, 0.7)',  // Green
+          ],
+          borderColor: [
+            '#ffffff',
+            '#ffffff',
+            '#ffffff',
+          ],
+          borderWidth: 2,
+        },
+      ],
+    };
+  };
+
+  const getTrendData = () => {
+    // Group by date (simulating last 7 days since real data might be sparse)
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      return d.toISOString().split('T')[0];
+    }).reverse();
+
+    const counts = last7Days.map(date => {
+      return potholes.filter(p => p.createdAt?.startsWith(date)).length;
+    });
+
+    return {
+      labels: last7Days.map(d => new Date(d).toLocaleDateString(undefined, { weekday: 'short' })),
+      datasets: [
+        {
+          label: 'Daily Reports',
+          data: counts,
+          fill: true,
+          borderColor: '#1a237e',
+          backgroundColor: 'rgba(26, 35, 126, 0.1)',
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#1a237e',
+        },
+      ],
+    };
+  };
+
+  if (loading) return (
+    <div className="h-full w-full flex flex-col items-center justify-center bg-[#f8faff] p-12">
+        <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#1a237e] border-t-transparent mb-4"></div>
+        <p className="text-sm font-black text-[#1a237e] tracking-widest uppercase">Initializing Neural Matrix...</p>
+    </div>
+  );
+
+  return (
+    <div className="p-4 md:p-8 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-8 p-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+           <div className="flex items-center space-x-2 text-[#1a237e] mb-1">
+              <BarChart3 size={24} className="text-orange-500" />
+              <h1 className="text-2xl font-black uppercase tracking-tight">Intelligence Analytics</h1>
+           </div>
+           <p className="text-sm text-gray-500 font-medium">Predictive modeling and historical damage distribution</p>
+        </div>
+        <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-xl">
+           <Calendar size={16} className="text-[#1a237e]" />
+           <span className="text-xs font-bold text-[#1a237e] uppercase tracking-wider">{new Date().toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
+        </div>
+      </div>
+
+      {error && (
+        <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-center text-red-700">
+           <AlertTriangle className="mr-3" />
+           <p className="font-bold text-sm tracking-tight">{error}</p>
+        </div>
+      )}
+
+      {/* Grid Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        
+        {/* Severity Distribution */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-2">
+                 <div className="p-2 bg-red-50 rounded-lg text-red-600">
+                    <AlertTriangle size={18} />
+                 </div>
+                 <h3 className="font-black text-[#1a237e] uppercase tracking-tight text-sm">Damage Intensity Profile</h3>
+              </div>
+           </div>
+           <div className="h-[300px] w-full items-center flex justify-center">
+              <Bar 
+                data={getSeverityData()} 
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                  }
+                }} 
+              />
+           </div>
+        </div>
+
+        {/* Status Distribution */}
+        <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-2">
+                 <div className="p-2 bg-blue-50 rounded-lg text-[#1a237e]">
+                    <PieChart size={18} />
+                 </div>
+                 <h3 className="font-black text-[#1a237e] uppercase tracking-tight text-sm">Resolution Efficiency</h3>
+              </div>
+           </div>
+           <div className="h-[300px] w-full flex justify-center">
+              <Doughnut 
+                data={getStatusData()}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: { position: 'bottom', labels: { usePointStyle: true, boxWidth: 6, font: { weight: 'bold', size: 10 } } }
+                  }
+                }}
+              />
+           </div>
+        </div>
+
+        {/* Trend Analysis */}
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow">
+           <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-2">
+                 <div className="p-2 bg-orange-50 rounded-lg text-orange-600">
+                    <TrendingUp size={18} />
+                 </div>
+                 <h3 className="font-black text-[#1a237e] uppercase tracking-tight text-sm">Incident Momentum (Past 7 Days)</h3>
+              </div>
+           </div>
+           <div className="h-[300px] w-full">
+              <Line 
+                data={getTrendData()}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [2, 2] } },
+                    x: { grid: { display: false } }
+                  }
+                }}
+              />
+           </div>
+        </div>
+      </div>
+
+      {/* Summary Stats Footer */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+         {[
+           { label: 'Critical Area', value: 'Zone-A', icon: <MapPin size={16}/>, color: 'red' },
+           { label: 'Avg Confidence', value: '88.4%', icon: <TrendingUp size={16}/>, color: 'blue' },
+           { label: 'Repair TAT', value: '4.2 Days', icon: <Clock3 size={16}/>, color: 'orange' },
+           { label: 'Fleet Status', value: 'Active', icon: <CheckCircle2 size={16}/>, color: 'green' }
+         ].map((stat, i) => (
+           <div key={i} className="bg-white p-4 rounded-xl border border-gray-100 flex items-center space-x-3 shadow-sm">
+              <div className={`p-2 rounded-lg bg-${stat.color}-50 text-${stat.color}-600`}>
+                 {stat.icon}
+              </div>
+              <div>
+                 <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{stat.label}</p>
+                 <p className="text-sm font-black text-gray-900">{stat.value}</p>
+              </div>
+           </div>
+         ))}
+      </div>
+    </div>
+  );
+};
+
+// Placeholder for MapPin which was missing in imports
+const MapPin = ({ size }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+    <circle cx="12" cy="10" r="3" />
+  </svg>
+);
+
+export default AnalyticsPage;

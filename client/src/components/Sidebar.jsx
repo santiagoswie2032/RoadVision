@@ -20,8 +20,8 @@ const Sidebar = ({ onClose }) => {
     { title: 'Portal Home', icon: <ChevronRight size={20} />, path: '/' },
     { title: 'Dashboard', icon: <LayoutDashboard size={20} />, path: '/dashboard' },
     { title: 'Map Monitoring', icon: <MapIcon size={20} />, path: '/map' },
-    { title: 'Pothole Reports', icon: <FileText size={20} />, path: '/reports' },
-    { title: 'Analytics', icon: <BarChart3 size={20} />, path: '/analytics' },
+    { title: 'File New Report', icon: <FileText size={20} />, path: '/report' },
+    { title: 'Pothole Analysis', icon: <BarChart3 size={20} />, path: '/analytics' },
     { title: 'Settings', icon: <Settings size={20} />, path: '/settings' },
   ];
 

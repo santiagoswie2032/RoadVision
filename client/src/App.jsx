@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import MapPage from './pages/MapPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
+import ReportPage from './pages/ReportPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 const ProtectedRoute = ({ children }) => {
   return children;
@@ -48,6 +50,24 @@ const AppRoots = () => {
           element={
             <Layout>
               <MapPage />
+            </Layout>
+          } 
+        />
+
+        <Route 
+          path="/report" 
+          element={
+            <Layout>
+              <ReportPage />
+            </Layout>
+          } 
+        />
+
+        <Route 
+          path="/analytics" 
+          element={
+            <Layout>
+              <AnalyticsPage />
             </Layout>
           } 
         />

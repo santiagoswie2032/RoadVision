@@ -7,6 +7,8 @@ const MapPage = () => {
   const [potholes, setPotholes] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showLayers, setShowLayers] = useState(false);
+  const [activeLayer, setActiveLayer] = useState('street'); // 'street', 'satellite', 'dark'
 
   useEffect(() => {
     fetchPotholes();
@@ -43,11 +45,46 @@ const MapPage = () => {
                  ACTIVE
               </span>
            </div>
-           <button className="flex items-center space-x-2 bg-white border border-gray-200 px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold text-gray-700 hover:bg-gray-50 transition-all shadow-sm">
-              <Layers size={14} />
-              <span className="hidden sm:inline">Layer Controls</span>
-              <span className="sm:hidden">Layers</span>
-           </button>
+           <div className="relative">
+             <button 
+               onClick={() => setShowLayers(!showLayers)}
+               className={`flex items-center space-x-2 border px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold transition-all shadow-sm ${showLayers ? 'bg-[#1a237e] text-white border-[#1a237e]' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+             >
+                <Layers size={14} />
+                <span className="hidden sm:inline">Layer Controls</span>
+                <span className="sm:hidden">Layers</span>
+             </button>
+
+             {showLayers && (
+               <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 z-[1100] overflow-hidden animate-in fade-in zoom-in duration-200">
+                 <div className="p-2 border-b border-gray-50 bg-gray-50/50">
+                   <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">Base Topography</span>
+                 </div>
+                 <div className="p-1">
+                   {[
+                     { id: 'street', label: 'Street View', icon: '🛣️' },
+                     { id: 'satellite', label: 'Satellite', icon: '🛰️' },
+                     { id: 'dark', label: 'Tactical Dark', icon: '🌙' },
+                   ].map((layer) => (
+                     <button
+                       key={layer.id}
+                       onClick={() => {
+                         setActiveLayer(layer.id);
+                         setShowLayers(false);
+                       }}
+                       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-bold transition-colors ${activeLayer === layer.id ? 'bg-blue-50 text-[#1a237e]' : 'text-gray-600 hover:bg-gray-50'}`}
+                     >
+                       <div className="flex items-center">
+                         <span className="mr-2">{layer.icon}</span>
+                         {layer.label}
+                       </div>
+                       {activeLayer === layer.id && <div className="w-1.5 h-1.5 bg-[#1a237e] rounded-full"></div>}
+                     </button>
+                   ))}
+                 </div>
+               </div>
+             )}
+           </div>
         </div>
       </div>
 
@@ -68,7 +105,7 @@ const MapPage = () => {
                 </div>
              </div>
         ) : (
-            <PotholeMap potholes={potholes} />
+            <PotholeMap potholes={potholes} activeLayer={activeLayer} />
         )}
         
         {/* Floating Map Legend - Hidden on very small screens, shown as minimal on medium */}
