@@ -165,13 +165,13 @@ const Dashboard = () => {
       {/* Analytics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
         {[
-          { label: 'Total Reported', value: stats.total, icon: <MapPin />, color: 'blue', desc: 'Total tracked incidents' },
-          { label: 'Critical Damage', value: stats.high, icon: <AlertTriangle />, color: 'red', desc: 'Immediate attention' },
-          { label: 'Pending Repairs', value: stats.pending, icon: <Clock3 />, color: 'orange', desc: 'Active tickets' },
-          { label: 'Resolved Tickets', value: stats.fixed, icon: <CheckCircle2 />, color: 'green', desc: 'Successfully restored' },
+          { label: 'Total Reported', value: stats.total, icon: <MapPin />, desc: 'Total tracked incidents', borderClass: 'border-b-blue-500', bgClass: 'bg-blue-50', textClass: 'text-blue-600', decorClass: 'bg-blue-50' },
+          { label: 'Critical Damage', value: stats.high, icon: <AlertTriangle />, desc: 'Immediate attention', borderClass: 'border-b-red-500', bgClass: 'bg-red-50', textClass: 'text-red-600', decorClass: 'bg-red-50' },
+          { label: 'Pending Repairs', value: stats.pending, icon: <Clock3 />, desc: 'Active tickets', borderClass: 'border-b-orange-500', bgClass: 'bg-orange-50', textClass: 'text-orange-600', decorClass: 'bg-orange-50' },
+          { label: 'Resolved Tickets', value: stats.fixed, icon: <CheckCircle2 />, desc: 'Successfully restored', borderClass: 'border-b-green-500', bgClass: 'bg-green-50', textClass: 'text-green-600', decorClass: 'bg-green-50' },
         ].map((card, i) => (
-          <div key={i} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all border-b-4 border-b-${card.color}-500`}>
-             <div className={`p-2.5 md:p-3 rounded-xl bg-${card.color}-50 text-${card.color}-600 inline-block mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
+          <div key={i} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all border-b-4 ${card.borderClass}`}>
+             <div className={`p-2.5 md:p-3 rounded-xl ${card.bgClass} ${card.textClass} inline-block mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>
                 {card.icon}
              </div>
              <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">{card.label}</p>
@@ -179,7 +179,7 @@ const Dashboard = () => {
              <p className="text-[10px] md:text-xs text-gray-500 font-medium">{card.desc}</p>
              
              {/* Decorative background element */}
-             <div className={`absolute -right-4 -bottom-4 w-24 h-24 bg-${card.color}-50 rounded-full opacity-30 group-hover:scale-150 transition-transform`}></div>
+             <div className={`absolute -right-4 -bottom-4 w-24 h-24 ${card.decorClass} rounded-full opacity-30 group-hover:scale-150 transition-transform`}></div>
           </div>
         ))}
       </div>

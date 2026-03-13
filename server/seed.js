@@ -33,7 +33,7 @@ const generateDummyPotholes = () => {
   const severities = ['low', 'medium', 'high'];
   const statuses = ['reported', 'under_repair', 'fixed'];
 
-  // Generate 50 dummy potholes
+  // Generate 50 dummy potholes spread across the last 7 days
   for (let i = 0; i < 50; i++) {
     // Pick a random base location
     const baseLocation = seedData[Math.floor(Math.random() * seedData.length)];
@@ -42,13 +42,15 @@ const generateDummyPotholes = () => {
     const latOffset = (Math.random() - 0.5) * 0.1;
     const lngOffset = (Math.random() - 0.5) * 0.1;
     
-    // Add random date within last 30 days
-    const dateOffset = Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000);
-    const date = new Date(Date.now() - dateOffset);
+    // Spread dates across the last 7 days so trend chart has data on each day
+    const dayOffset = Math.floor(Math.random() * 7); // 0-6 days ago
+    const hourOffset = Math.floor(Math.random() * 24);
+    const date = new Date();
+    date.setDate(date.getDate() - dayOffset);
+    date.setHours(hourOffset, Math.floor(Math.random() * 60), 0, 0);
 
     // Random status and severity
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    // Add some logic to bias toward 'reported' and 'medium'
     const severity = Math.random() > 0.6 ? 'high' : (Math.random() > 0.2 ? 'medium' : 'low');
 
     potholes.push({
@@ -60,7 +62,7 @@ const generateDummyPotholes = () => {
       description: `Pothole detected near ${baseLocation.city}. Needs attention.`,
       status: status,
       detectedAt: date,
-      updatedAt: new Date(date.getTime() + Math.random() * 10000000)
+      updatedAt: new Date(date.getTime() + Math.random() * 5 * 24 * 60 * 60 * 1000) // 0-5 days after detection
     });
   }
 

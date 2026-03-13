@@ -1,8 +1,6 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { reportPothole, getPotholes, updatePotholeStatus } from '../controllers/potholeController.js';
-import { protect, authorize } from '../middleware/auth.js';
-
 const router = express.Router();
 
 // Public route for YOLO script
@@ -20,11 +18,9 @@ router.post(
 // Get all potholes
 router.get('/', getPotholes);
 
-// Update status (Protected - Officers/Admins only)
+// Update status (Open access since app is public)
 router.patch(
   '/:id/status',
-  protect,
-  authorize('admin', 'officer'),
   updatePotholeStatus
 );
 
