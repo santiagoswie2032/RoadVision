@@ -2,7 +2,11 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ShieldCheck, Lock, Mail, AlertCircle } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
+import emblem from '../assets/emblem.jpeg';
+import nhaiLogo from '../assets/NHAI.jpeg';
+import diLogo from '../assets/DI.jpeg';
+import miLogo from '../assets/MI.jpeg';
 
 const Login = () => {
   const { t } = useLanguage();
@@ -38,7 +42,7 @@ const Login = () => {
         <div className="flex flex-col items-center mb-10 text-center">
           <div className="bg-gray-50 p-4 rounded-full border border-gray-100 mb-4 text-center">
              <img 
-               src="/emblem.jpeg" 
+               src={emblem} 
                alt="Emblem of India" 
                className="h-16 w-auto mx-auto"
              />
@@ -120,10 +124,10 @@ const Login = () => {
         </div>
 
         {/* Support Logos */}
-        <div className="flex items-center justify-center space-x-6 border-t border-gray-50 pt-6 w-full opacity-40 grayscale">
-            <img src="/NHAI.jpeg" className="h-4 w-auto object-contain" alt="NHAI" />
-            <img src="/DI.jpeg" className="h-4 w-auto object-contain" alt="Digital India" />
-            <img src="/MI.jpeg" className="h-4 w-auto object-contain" alt="Make in India" />
+        <div className="flex items-center justify-center space-x-6 border-t border-gray-50 pt-6 w-full opacity-40 grayscale text-center">
+            <img src={nhaiLogo} className="h-4 w-auto object-contain" alt="NHAI" />
+            <img src={diLogo} className="h-4 w-auto object-contain" alt="Digital India" />
+            <img src={miLogo} className="h-4 w-auto object-contain" alt="Make in India" />
         </div>
       </div>
     </div>

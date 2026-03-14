@@ -1,12 +1,14 @@
 import { Bell, Search, HelpCircle, Menu, X, Info, AlertTriangle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
+import emblem from '../assets/emblem.jpeg';
 
 const Header = ({ onMenuClick }) => {
   const { t } = useLanguage();
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
   useEffect(() => {
     fetchNotifications();
@@ -101,18 +103,73 @@ const Header = ({ onMenuClick }) => {
               </div>
             )}
 
-            <button className="hidden sm:block p-1.5 md:p-2 text-gray-400 hover:text-[#1a237e] hover:bg-gray-50 rounded-lg transition-all">
+            <button 
+              onClick={() => setShowHelpModal(true)}
+              className="hidden sm:block p-1.5 md:p-2 text-gray-400 hover:text-[#1a237e] hover:bg-gray-50 rounded-lg transition-all"
+            >
                 <HelpCircle size={20} />
             </button>
-            <div className="flex items-center ml-1 md:ml-2 bg-gray-50 border border-gray-200 px-2 md:px-3 py-1 md:py-1.5 rounded-lg">
+            <div className="flex items-center ml-1 md:ml-2 bg-gray-50 border border-gray-200 px-3 md:px-4 py-1.5 md:py-2 rounded-lg shadow-sm">
                 <img 
-                  src="/emblem.jpeg" 
+                  src={emblem} 
                   alt="Emblem of India" 
-                  className="h-5 md:h-6 w-auto"
+                  className="h-6 md:h-8 w-auto block"
+                  onError={(e) => { e.target.src = "https://mod.gov.in/sites/all/themes/mod/images/emblem-inner.png" }}
                 />
             </div>
         </div>
       </div>
+
+      {/* Help Modal */}
+      {showHelpModal && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 w-full max-w-lg overflow-hidden animate-in zoom-in-95 duration-300">
+            <div className="bg-[#1a237e] p-6 text-white flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                <HelpCircle size={24} className="text-orange-400" />
+                <h3 className="text-lg font-black uppercase tracking-tight">{t('common.help_support')}</h3>
+              </div>
+              <button 
+                onClick={() => setShowHelpModal(false)}
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="space-y-4">
+                <div className="flex space-x-4 p-4 bg-blue-50 rounded-2xl">
+                  <div className="text-[#1a237e] font-black text-xl">01</div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#1a237e] uppercase tracking-widest mb-1">Surveillance Map</h4>
+                    <p className="text-[11px] text-gray-600 font-medium">Use the interactive map to visualize real-time road anomalies detected by mobile units.</p>
+                  </div>
+                </div>
+                <div className="flex space-x-4 p-4 bg-orange-50 rounded-2xl">
+                  <div className="text-[#ea580c] font-black text-xl">02</div>
+                  <div>
+                    <h4 className="text-xs font-black text-[#ea580c] uppercase tracking-widest mb-1">Incident Reporting</h4>
+                    <p className="text-[11px] text-gray-600 font-medium">Found a defect? Use "File New Report" to instantly upload evidence with GPS tagging.</p>
+                  </div>
+                </div>
+                <div className="flex space-x-4 p-4 bg-green-50 rounded-2xl">
+                  <div className="text-green-700 font-black text-xl">03</div>
+                  <div>
+                    <h4 className="text-xs font-black text-green-700 uppercase tracking-widest mb-1">Analytics API</h4>
+                    <p className="text-[11px] text-gray-600 font-medium">Export CSV reports from the dashboard for advanced geospatial analysis and auditing.</p>
+                  </div>
+                </div>
+              </div>
+              <button 
+                onClick={() => setShowHelpModal(false)}
+                className="w-full py-4 bg-[#1a237e] text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                Understood
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 };

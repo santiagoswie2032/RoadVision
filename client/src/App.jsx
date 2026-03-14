@@ -1,7 +1,8 @@
 import { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, AuthContext } from './context/AuthContext';
-import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { LanguageProvider } from './context/LanguageContext';
+import { useLanguage } from './hooks/useLanguage';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
