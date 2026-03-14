@@ -1,28 +1,73 @@
 import { Bell, Search, HelpCircle, Menu, X, Info, AlertTriangle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
-// import emblem from '../assets/emblem.jpeg';
+import { SettingsContext } from '../context/SettingsContext';
+import { SearchContext } from '../context/SearchContext';
+import { useNavigate, useLocation } from 'react-router-dom';
+
 const emblem = "/emblem.jpeg";
 
 const Header = ({ onMenuClick }) => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { notificationsEnabled } = useContext(SettingsContext);
+  const { searchQuery, setSearchQuery, setSearchCoords } = useContext(SearchContext);
+  
   const [notifications, setNotifications] = useState([]);
   const [showNotifPanel, setShowNotifPanel] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000); // Check every 30s
-    return () => clearInterval(interval);
-  }, []);
+    if (notificationsEnabled) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 10000); // Check every 10s for more "live" feel
+      return () => clearInterval(interval);
+    } else {
+      setNotifications([]);
+    }
+  }, [notificationsEnabled]);
+
+  const handleSearch = async (e) => {
+    if (e.key !== 'Enter' || !searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      // Use Nominatim OpenStreetMap API for geocoding
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=in`);
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        setSearchCoords({ 
+          lat: parseFloat(lat), 
+          lng: parseFloat(lon), 
+          displayName: display_name 
+        });
+        
+        // If not on map page, navigate to it
+        if (location.pathname !== '/map') {
+          navigate('/map');
+        }
+      }
+    } catch (err) {
+      console.error("Geocoding failed:", err);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
       const { data } = await api.get('/potholes');
-      // Filter for unread high severity detections (simulating 'unread')
-      const unread = data.filter(p => p.severityLevel === 'high' && p.status === 'reported');
-      setNotifications(unread);
+      // Real notification simulation: High severity reports
+      const recentHighSeverity = data
+        .filter(p => p.severityLevel === 'high' && p.status === 'reported')
+        .sort((a, b) => new Date(b.detectedAt) - new Date(a.detectedAt));
+      
+      setNotifications(recentHighSeverity);
     } catch (err) {
       console.warn("Notification sync failed");
     }
@@ -51,9 +96,16 @@ const Header = ({ onMenuClick }) => {
 
       <div className="flex items-center space-x-3 md:space-x-6">
         <div className="relative hidden lg:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          {isSearching ? (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 animate-spin w-4 h-4 border-2 border-[#1a237e] border-t-transparent rounded-full"></div>
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          )}
           <input 
             type="text" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearch}
             placeholder={t('header.search')}
             className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg bg-gray-50 text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] w-48 xl:w-64 transition-all"
           />

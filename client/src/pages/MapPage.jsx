@@ -115,9 +115,10 @@ const MapPage = () => {
            <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3 border-b border-gray-100 pb-2">{t('map.legend')}</p>
            <div className="space-y-2 md:space-y-2.5">
               {[
-                { label: t('map.critical'), color: 'bg-red-500 shadow-red-500/50', count: potholes.filter(p => p.severityLevel === 'high' && p.status !== 'fixed').length },
-                { label: t('map.moderate'), color: 'bg-orange-500 shadow-orange-500/50', count: potholes.filter(p => p.severityLevel === 'medium' && p.status !== 'fixed').length },
-                { label: t('map.minor'), color: 'bg-green-500 shadow-green-500/50', count: potholes.filter(p => p.severityLevel === 'low' && p.status !== 'fixed').length },
+                { label: t('map.critical'), color: 'bg-red-500 shadow-red-500/50', count: potholes.filter(p => p.severityLevel === 'high' && p.status === 'reported').length },
+                { label: t('map.moderate'), color: 'bg-orange-500 shadow-orange-500/50', count: potholes.filter(p => p.severityLevel === 'medium' && p.status === 'reported').length },
+                { label: 'Under Construction', color: 'bg-yellow-400 shadow-yellow-400/50', count: potholes.filter(p => p.status === 'under_repair').length },
+                { label: t('map.minor'), color: 'bg-green-500 shadow-green-500/50', count: potholes.filter(p => p.severityLevel === 'low' && p.status === 'reported').length },
                 { label: t('map.restored'), color: 'bg-gray-600 shadow-gray-500/30', count: potholes.filter(p => p.status === 'fixed').length },
               ].map((item, i) => (
                 <div key={i} className="flex items-center justify-between text-[10px] md:text-xs font-bold text-gray-700">

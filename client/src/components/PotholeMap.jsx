@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGroup } from 'react-leaflet';
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
@@ -31,14 +31,32 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
+import { SettingsContext } from '../context/SettingsContext';
+import { SearchContext } from '../context/SearchContext';
+
 const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
   const navigate = useNavigate();
+  const { gpsEnabled } = useContext(SettingsContext);
+  const { searchCoords } = useContext(SearchContext);
   const [center, setCenter] = useState([20.5937, 78.9629]); // Default to India center
   const [hasUserLocation, setHasUserLocation] = useState(false);
   const [isLocating, setIsLocating] = useState(false);
   const [geoError, setGeoError] = useState('');
 
+  // Handle Search Result Updates
+  useEffect(() => {
+    if (searchCoords) {
+      setCenter([searchCoords.lat, searchCoords.lng]);
+      setHasUserLocation(true); // Treat search result like a location lock for zoom purposes
+    }
+  }, [searchCoords]);
+
   const getUserLocation = (isManual = false) => {
+    if (!gpsEnabled) {
+      setGeoError("GPS Access Disabled in Settings");
+      return;
+    }
+    
     if (!("geolocation" in navigator)) {
       setGeoError("Geolocation not supported");
       return;
@@ -118,6 +136,9 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                 let color = '#10B981'; // Green for low severity
                 if (pothole.severityLevel === 'medium') color = '#F59E0B'; // Orange
                 if (pothole.severityLevel === 'high') color = '#EF4444'; // Red
+                
+                // Status overrides severity color
+                if (pothole.status === 'under_repair') color = '#EAB308'; // Yellow for construction
                 if (pothole.status === 'fixed') color = '#4B5563'; // Gray
 
                 return (
@@ -168,6 +189,36 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                 );
               })}
             </LayerGroup>
+          </LayersControl.Overlay>
+
+          <LayersControl.Overlay checked name="Search Results">
+             <LayerGroup>
+                {searchCoords && (
+                  <Marker 
+                    position={[searchCoords.lat, searchCoords.lng]} 
+                    icon={L.divIcon({
+                      className: 'search-location-marker',
+                      html: `
+                        <div class="flex flex-col items-center">
+                          <div class="w-8 h-8 bg-[#1a237e] rounded-full border-4 border-white shadow-xl flex items-center justify-center text-white">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                          </div>
+                          <div class="bg-[#1a237e] text-white text-[8px] font-black px-2 py-0.5 rounded mt-1 uppercase whitespace-nowrap shadow-lg">Searched Location</div>
+                        </div>
+                      `,
+                      iconSize: [40, 40],
+                      iconAnchor: [20, 20]
+                    })}
+                  >
+                    <Popup>
+                      <div className="p-2 font-bold text-xs">
+                        <p className="text-[#1a237e] uppercase tracking-tighter mb-1 font-black">Search Result</p>
+                        <p className="text-gray-600 font-medium leading-tight">{searchCoords.displayName}</p>
+                      </div>
+                    </Popup>
+                  </Marker>
+                )}
+             </LayerGroup>
           </LayersControl.Overlay>
 
           <LayersControl.Overlay name="User Location">

@@ -117,11 +117,18 @@ const AppRoots = () => {
   );
 };
 
+import { SettingsProvider } from './context/SettingsContext';
+import { SearchProvider } from './context/SearchContext';
+
 function App() {
   return (
     <LanguageProvider>
       <AuthProvider>
-        <AppRoots />
+        <SettingsProvider>
+          <SearchProvider>
+            <AppRoots />
+          </SearchProvider>
+        </SettingsProvider>
       </AuthProvider>
     </LanguageProvider>
   );
