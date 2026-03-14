@@ -2,7 +2,10 @@ import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
+import emblem from '../assets/emblem.jpeg';
+import pmImage from '../assets/pm.jpg';
+import ministryBanner from '../assets/ministry.png';
 import { 
   BrainCircuit, 
   MapPin, 
@@ -52,7 +55,7 @@ const WelcomePage = () => {
           {/* Left: Emblem */}
           <div className="flex items-center space-x-4">
             <img 
-              src="/emblem.jpeg" 
+              src={emblem} 
               alt="Emblem of India" 
               className="h-16 md:h-20 w-auto"
             />
@@ -81,7 +84,7 @@ const WelcomePage = () => {
             )}
             <div className="w-12 h-12 md:w-20 md:h-24 rounded-[1.5rem] overflow-hidden border-2 border-[#1a237e]/10 shadow-lg flex-shrink-0">
               <img 
-                src="/pm.jpg" 
+                src={pmImage} 
                 alt={t('welcome.pm_name')} 
                 className="w-full h-full object-cover transition-all"
               />
@@ -102,7 +105,7 @@ const WelcomePage = () => {
               className="w-full rounded-[2rem] overflow-hidden shadow-2xl mb-12 border border-white"
             >
               <img 
-                src="/ministry.png" 
+                src={ministryBanner} 
                 alt={t('welcome.ministry')} 
                 className="w-full h-[200px] md:h-[400px] object-cover"
               />

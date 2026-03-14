@@ -12,6 +12,10 @@ import {
   BrainCircuit,
   X,
 } from 'lucide-react';
+import { useLanguage } from '../hooks/useLanguage';
+import { storage } from '../firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
 const INFERENCE_URL = import.meta.env.VITE_INFERENCE_URL || 'http://localhost:8001';
