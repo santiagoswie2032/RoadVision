@@ -6,20 +6,16 @@ import { sendReportEmail } from '../utils/emailService.js';
 // @route   POST /api/potholes/detect
 // @access  Public
 export const reportPothole = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
   const { latitude, longitude, severityLevel, confidence, imageUrl, description } = req.body;
+  const file = req.file;
 
   try {
     // 1. Save to Database
     const pothole = await Pothole.create({
-      latitude,
-      longitude,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
       severityLevel,
-      detectionConfidence: confidence,
+      detectionConfidence: parseFloat(confidence || 1.0),
       imageUrl,
       description,
       status: 'reported',
@@ -30,14 +26,25 @@ export const reportPothole = async (req, res) => {
     // 2. Wait 2 seconds as requested for simulation/auto-flow
     setTimeout(async () => {
       try {
+        let attachment = null;
+        if (file) {
+          attachment = {
+            buffer: file.buffer,
+            filename: file.originalname,
+            contentType: file.mimetype
+          };
+          console.log(`Preparing attachment: ${file.originalname}`);
+        }
+
         await sendReportEmail({
           latitude,
           longitude,
           severityLevel,
           imageUrl,
           description
-        });
-        console.log("Email sent and process logged successfully.");
+        }, attachment);
+        
+        console.log("Email sent with attachment and process logged successfully.");
       } catch (err) {
         console.error("Delayed email dispatch failed:", err.message);
       }
@@ -46,7 +53,7 @@ export const reportPothole = async (req, res) => {
     res.status(201).json({
       message: "Report submitted and email sequence started",
       pothole,
-      logs: ["Process initiated", "Persistence active", "Email queued for vikalpbordekar@gmail.com"]
+      logs: ["Process initiated", "Persistence active", "Email with attachment queued"]
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error reporting pothole', error: error.message });

@@ -46,6 +46,7 @@ const ReportPage = () => {
   const [annotatedImageUrl, setAnnotatedImageUrl] = useState('');
   const [isVideo, setIsVideo] = useState(false);
   const [annotatedVideoUrl, setAnnotatedVideoUrl] = useState('');
+  const [selectedFile, setSelectedFile] = useState(null);
 
   // Simulation states
   const [simulationLogs, setSimulationLogs] = useState([]);
@@ -85,6 +86,7 @@ const ReportPage = () => {
     const file = e.target.files[0];
     if (!file) return;
 
+    setSelectedFile(file);
     setError('');
     setDetectionResult(null);
     setAnnotatedImageUrl('');
@@ -196,13 +198,23 @@ const ReportPage = () => {
 
     try {
       const confidence = detectionResult?.confidence_avg || 1.0;
-      await api.post('/potholes/detect', {
-        latitude: parseFloat(formData.latitude),
-        longitude: parseFloat(formData.longitude),
-        severityLevel: formData.severityLevel,
-        confidence: confidence,
-        imageUrl: annotatedImageUrl || formData.imageUrl,
-        description: formData.description || 'Auto-reported via AI survey'
+      
+      // Use FormData to send file and other fields
+      const submitData = new FormData();
+      if (selectedFile) {
+        submitData.append('file', selectedFile);
+      }
+      submitData.append('latitude', formData.latitude);
+      submitData.append('longitude', formData.longitude);
+      submitData.append('severityLevel', formData.severityLevel);
+      submitData.append('confidence', confidence);
+      submitData.append('imageUrl', annotatedImageUrl || formData.imageUrl);
+      submitData.append('description', formData.description || 'Auto-reported via AI survey');
+
+      await api.post('/potholes/detect', submitData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
       // The backend has now saved the report and started the 2s email delay
@@ -228,11 +240,18 @@ const ReportPage = () => {
   };
 
   const clearImage = () => {
+    if (localPreview) URL.revokeObjectURL(localPreview);
     setLocalPreview('');
     setIsVideo(false);
     setFormData(prev => ({ ...prev, imageUrl: '', description: '' }));
     setDetectionResult(null);
     setSimulationLogs([]);
+    setSelectedFile(null);
+    setAnnotatedImageUrl('');
+    setAnnotatedVideoUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   if (success) {

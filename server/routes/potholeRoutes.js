@@ -1,17 +1,19 @@
 import express from 'express';
-import { body } from 'express-validator';
+import multer from 'multer';
 import { reportPothole, getPotholes, updatePotholeStatus } from '../controllers/potholeController.js';
 const router = express.Router();
 
-// Public route for YOLO script
+// Configure Multer for in-memory file handling
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
+});
+
+// Update detect route to handle file uploads
 router.post(
   '/detect',
-  [
-    body('latitude', 'Latitude is required and must be a number').isNumeric(),
-    body('longitude', 'Longitude is required and must be a number').isNumeric(),
-    body('severityLevel', 'Severity level is required (low, medium, high)').isIn(['low', 'medium', 'high']),
-    body('confidence', 'Confidence is required').isNumeric(),
-  ],
+  upload.single('file'),
   reportPothole
 );
 
