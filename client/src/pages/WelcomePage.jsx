@@ -4,13 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useLanguage } from '../hooks/useLanguage';
 
-const emblem = "/emblem.jpeg";
-const pmImage = "/emblem.jpeg"; // User requested emblem for "2nd img" (PM portrait)
-const ministryBanner = "/ministry.png";
-const diLogo = "/DI.jpeg";
-const miLogo = "/MI.jpeg";
-const nhaiLogo = "/NHAI.jpeg";
-
 import { 
   BrainCircuit, 
   MapPin, 
@@ -52,63 +45,38 @@ const WelcomePage = () => {
     },
   };
 
+  const diLogo = "/DI.jpeg";
+  const miLogo = "/MI.jpeg";
+  const nhaiLogo = "/NHAI.jpeg";
+  const ministryBanner = "/ministry.png";
+
   return (
-    <div className={`h-screen w-full bg-white overflow-y-auto overflow-x-hidden flex flex-col ${language === 'hi' ? 'font-hi' : 'font-sans'}`}>
-      {/* Redesigned Header Section */}
-      <header className="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div className="w-full px-4 md:px-8 py-4 flex items-center justify-between">
-          {/* Left: Emblem */}
-          <div className="flex items-center space-x-4">
-            <img 
-              src={emblem} 
-              alt="Emblem of India" 
-              className="h-16 md:h-20 w-auto"
-              onError={(e) => { e.target.src = "https://mod.gov.in/sites/all/themes/mod/images/emblem-inner.png" }}
-            />
-            <div className="hidden lg:flex flex-col">
-              <p className="text-xs font-bold text-[#ea580c] tracking-widest uppercase text-left">{t('welcome.gov_india')}</p>
-              <p className="text-[10px] text-gray-400 font-medium text-left">{t('welcome.ministry')}</p>
-            </div>
-          </div>
-
-          {/* Center: Title */}
-          <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-            <h1 className="text-lg md:text-2xl lg:text-3xl font-black text-[#1a237e] uppercase tracking-tighter leading-tight">
-              {t('welcome.title')}
-            </h1>
-          </div>
-
-          {/* Right: PM Image & Login (Header included) */}
-          <div className="flex items-center space-x-3 md:space-x-4">
-            {!user && (
-              <button 
-                onClick={() => navigate('/login')}
-                className="hidden sm:flex px-4 py-2 border-2 border-[#1a237e] text-[#1a237e] rounded-xl font-black text-xs uppercase tracking-widest hover:bg-[#1a237e] hover:text-white transition-all shadow-sm"
-              >
-                {t('welcome.cta_login')}
-              </button>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <div className="flex-1 w-full flex flex-col items-center bg-[#f8faff]">
-        <div className="w-full max-w-7xl px-4 md:px-8 py-8 md:py-12">
+    <div className={`w-full bg-white overflow-y-auto overflow-x-hidden flex flex-col ${language === 'hi' ? 'font-hi' : 'font-sans'}`}>
+      <div className="flex-1 w-full flex flex-col items-center bg-[#f8faff] mt-6">
+        <div className="w-full max-w-7xl px-4 md:px-8 py-4 md:py-8">
           {/* Main Content Area */}
           <div className="w-full">
-            {/* Ministry Banner */}
+            {/* National Banner - Static */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="w-full rounded-[2rem] overflow-hidden shadow-2xl mb-12 border border-white"
+              className="relative w-full h-[250px] md:h-[500px] rounded-[2.5rem] overflow-hidden shadow-2xl mb-12 border-4 border-white bg-[#1a237e]/5"
             >
               <img 
                 src={ministryBanner} 
-                alt={t('welcome.ministry')} 
-                className="w-full h-[200px] md:h-[400px] object-cover"
+                alt="Portal Banner" 
+                className="w-full h-full object-cover object-center"
                 onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=1000&auto=format&fit=crop" }}
               />
+              {/* Caption Overlay */}
+              <div className="absolute bottom-10 left-10 right-10">
+                 <div className="inline-block bg-white/80 backdrop-blur-md px-6 py-3 rounded-2xl border border-white/50 shadow-lg">
+                    <p className="text-[10px] md:text-xs font-black text-[#1a237e] uppercase tracking-[0.2em]">
+                       {t('welcome.ministry')}
+                    </p>
+                 </div>
+              </div>
             </motion.div>
 
             {/* Welcome Message & Action */}
@@ -147,7 +115,7 @@ const WelcomePage = () => {
                  <h2 className="text-2xl md:text-4xl font-black text-[#1a237e] uppercase tracking-tight">{t('welcome.impact_title')}</h2>
               </div>
               
-              <div className="relative w-screen left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] overflow-hidden h-[350px] md:h-[400px]">
+              <div className="relative w-full overflow-hidden h-[350px] md:h-[400px]">
                 {/* Background with Overlay */}
                 <div 
                   className="absolute inset-0 bg-cover bg-center bg-fixed"

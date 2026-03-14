@@ -39,7 +39,7 @@ const AppRoots = () => {
     <Router>
       <Routes>
         {/* Public Welcome Portal */}
-        <Route path="/" element={<WelcomePage />} />
+        <Route path="/" element={<Layout><WelcomePage /></Layout>} />
         
         {/* Authentication */}
         <Route path="/login" element={<Login />} />
