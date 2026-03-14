@@ -1,9 +1,10 @@
 import Pothole from '../models/Pothole.js';
 import { validationResult } from 'express-validator';
+import { sendReportEmail } from '../utils/emailService.js';
 
-// @desc    Report new pothole (From YOLO Python Script)
+// @desc    Report new pothole (From YOLO Python Script or Frontend)
 // @route   POST /api/potholes/detect
-// @access  Public (or protected via API key depending on requirements, kept public for mock script ease)
+// @access  Public
 export const reportPothole = async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -13,6 +14,7 @@ export const reportPothole = async (req, res) => {
   const { latitude, longitude, severityLevel, confidence, imageUrl, description } = req.body;
 
   try {
+    // 1. Save to Database
     const pothole = await Pothole.create({
       latitude,
       longitude,
@@ -23,7 +25,29 @@ export const reportPothole = async (req, res) => {
       status: 'reported',
     });
 
-    res.status(201).json(pothole);
+    console.log("Process initiated: Report saved to database.");
+
+    // 2. Wait 2 seconds as requested for simulation/auto-flow
+    setTimeout(async () => {
+      try {
+        await sendReportEmail({
+          latitude,
+          longitude,
+          severityLevel,
+          imageUrl,
+          description
+        });
+        console.log("Email sent and process logged successfully.");
+      } catch (err) {
+        console.error("Delayed email dispatch failed:", err.message);
+      }
+    }, 2000);
+
+    res.status(201).json({
+      message: "Report submitted and email sequence started",
+      pothole,
+      logs: ["Process initiated", "Persistence active", "Email queued for vikalpbordekar@gmail.com"]
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error reporting pothole', error: error.message });
   }

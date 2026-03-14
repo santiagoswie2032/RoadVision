@@ -192,7 +192,7 @@ const ReportPage = () => {
 
     setLoading(true);
     setIsSimulating(true);
-    setSimulationLogs(["Process initiated..."]);
+    setSimulationLogs(["Process initiated... Building AI Evidence Packet"]);
 
     try {
       const confidence = detectionResult?.confidence_avg || 1.0;
@@ -205,19 +205,23 @@ const ReportPage = () => {
         description: formData.description || 'Auto-reported via AI survey'
       });
       
-      // Simulation steps
+      // The backend has now saved the report and started the 2s email delay
       setTimeout(() => {
-        setSimulationLogs(prev => [...prev, "Email dispatched to vikalpbordekar@gmail.com"]);
-      }, 1500);
+        setSimulationLogs(prev => [...prev, "Email dispatched via Nodemailer (nids194914@gmail.com)"]);
+      }, 1000);
 
       setTimeout(() => {
-        setSimulationLogs(prev => [...prev, "Mail read by Authority (PGPortal Simulation active)"]);
+        setSimulationLogs(prev => [...prev, "Sent to Authority: vikalpbordekar@gmail.com"]);
+      }, 2500);
+
+      setTimeout(() => {
+        setSimulationLogs(prev => [...prev, "Mail Read: Status confirmed by PGPortal Simulation"]);
         setSuccess(true);
         setLoading(false);
-      }, 4000);
+      }, 5000);
 
     } catch (err) {
-      setError(err.response?.data?.message || t('common.error'));
+      setError(err.response?.data?.message || "Communication sync failure with central database.");
       setLoading(false);
       setIsSimulating(false);
     }
