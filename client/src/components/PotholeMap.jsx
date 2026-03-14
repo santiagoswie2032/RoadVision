@@ -34,7 +34,7 @@ const RecenterMap = ({ center }) => {
 import { SettingsContext } from '../context/SettingsContext';
 import { SearchContext } from '../context/SearchContext';
 
-const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPotholeId }) => {
+const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPotholeId, showMarkers = true, children }) => {
   const navigate = useNavigate();
   const { gpsEnabled } = useContext(SettingsContext);
   const { searchCoords } = useContext(SearchContext);
@@ -145,7 +145,8 @@ const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPot
         <LayersControl position="topright">
           <LayersControl.Overlay checked name="Detected Hazards">
             <LayerGroup>
-              {potholes && potholes.map((pothole) => {
+              {/* Road Damage Markers */}
+              {showMarkers && potholes && potholes.map((pothole) => {
                 const isNearest = pothole._id === nearestPotholeId;
                 let color = isNearest ? '#ff0000' : '#10B981'; 
                 
@@ -260,6 +261,9 @@ const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPot
              </LayerGroup>
           </LayersControl.Overlay>
         </LayersControl>
+
+        {/* Render health-based routes */}
+        {children}
       </MapContainer>
 
       {/* Re-center Button */}

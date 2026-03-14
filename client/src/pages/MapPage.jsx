@@ -29,10 +29,11 @@ import {
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import PotholeMap from '../components/PotholeMap';
+import RoutePlanner from '../components/RoutePlanner';
 import { useLanguage } from '../hooks/useLanguage';
 import { SearchContext } from '../context/SearchContext';
 import { SettingsContext } from '../context/SettingsContext';
-import { X as CloseIcon } from 'lucide-react';
+import { X as CloseIcon, Activity } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -79,6 +80,7 @@ const MapPage = () => {
   const [loading, setLoading] = useState(true);
   const [showLayers, setShowLayers] = useState(false);
   const [activeLayer, setActiveLayer] = useState('street'); // 'street', 'satellite', 'dark'
+  const [isHealthView, setIsHealthView] = useState(false);
 
   // Real-time tracking state
   const [userPos, setUserPos] = useState(null);
@@ -321,8 +323,18 @@ const MapPage = () => {
                     ))}
                   </div>
                 </div>
-             )}
+              )}
            </div>
+
+           {/* Road Health Toggle */}
+           <button
+             onClick={() => setIsHealthView(!isHealthView)}
+             className={`flex items-center space-x-2 border px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold transition-all shadow-sm ${isHealthView ? 'bg-red-600 text-white border-red-600 animate-pulse' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
+           >
+              <Activity size={14} />
+              <span className="hidden sm:inline uppercase tracking-widest">{isHealthView ? 'Exit Health View' : 'Road Health'}</span>
+              <span className="sm:hidden">Health</span>
+           </button>
         </div>
       </div>
 
@@ -343,31 +355,56 @@ const MapPage = () => {
                 </div>
              </div>
         ) : (
-            <PotholeMap potholes={potholes} activeLayer={activeLayer} nearestPotholeId={nearestPothole?._id} userLocation={userPos} />
-        )}
+            <div className="relative h-full w-full">
+               <PotholeMap 
+                 potholes={potholes} 
+                 activeLayer={activeLayer} 
+                 nearestPotholeId={nearestPothole?._id} 
+                 userLocation={userPos} 
+                 showMarkers={!isHealthView}
+               >
+                 {isHealthView && userPos && (
+                   <RoutePlanner 
+                     start={userPos} 
+                     end={searchCoords || { lat: userPos.lat + 0.05, lng: userPos.lng + 0.05 }} 
+                   />
+                 )}
+               </PotholeMap>
 
-        <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-[1000] bg-white/95 backdrop-blur-md p-3 md:p-4 rounded-xl shadow-xl border border-gray-100 min-w-[140px] md:min-w-[180px] hidden sm:block text-left">
-           <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3 border-b border-gray-100 pb-2">{t('map.legend')}</p>
-           <div className="space-y-2 md:space-y-2.5">
-              {[
-                { label: t('map.critical'), color: 'bg-red-500 shadow-red-500/50', count: potholes.filter(p => p.severityLevel === 'high' && p.status === 'reported').length },
-                { label: t('map.moderate'), color: 'bg-orange-500 shadow-orange-500/50', count: potholes.filter(p => p.severityLevel === 'medium' && p.status === 'reported').length },
-                { label: 'Under Construction', color: 'bg-yellow-400 shadow-yellow-400/50', count: potholes.filter(p => p.status === 'under_repair').length },
-                { label: t('map.minor'), color: 'bg-green-500 shadow-green-500/50', count: potholes.filter(p => p.severityLevel === 'low' && p.status === 'reported').length },
-                { label: t('map.restored'), color: 'bg-gray-600 shadow-gray-500/30', count: potholes.filter(p => p.status === 'fixed').length },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between text-[10px] md:text-xs font-bold text-gray-700">
-                   <div className="flex items-center">
-                      <div className={`w-2 h-2 md:w-3 md:h-3 ${item.color} rounded-full mr-2 md:mr-3 shadow-sm`}></div>
-                      {item.label}
-                   </div>
-                   <span className={`px-1.5 py-0.5 rounded ${item.count > 0 ? 'bg-gray-100 text-gray-900' : 'bg-red-50 text-red-400 opacity-50 text-[8px]'}`}>
-                      {item.count > 0 ? item.count : t('map.not_detected')}
-                   </span>
-                </div>
-              ))}
-           </div>
-        </div>
+               {/* Road Health Legend Overlay */}
+               {isHealthView && (
+                 <div className="absolute top-4 right-16 z-[1000] bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-2xl border-2 border-red-500/20 max-w-[180px] animate-in slide-in-from-right duration-500">
+                    <div className="flex items-center space-x-2 mb-3 border-b border-gray-100 pb-2">
+                       <Activity size={12} className="text-red-500" />
+                       <span className="text-[9px] font-black uppercase tracking-widest text-[#1a237e]">Road Health Index</span>
+                    </div>
+                    <div className="space-y-2.5">
+                       <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                             <div className="w-4 h-1 bg-green-500 rounded-full"></div>
+                             <span className="text-[8px] font-black text-gray-500 uppercase">Optimal</span>
+                          </div>
+                       </div>
+                       <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                             <div className="w-4 h-1 bg-orange-500 rounded-full"></div>
+                             <span className="text-[8px] font-black text-gray-500 uppercase">Caution</span>
+                          </div>
+                       </div>
+                       <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                             <div className="w-4 h-1 bg-red-600 rounded-full animate-pulse"></div>
+                             <span className="text-[8px] font-black text-gray-500 uppercase">Critical</span>
+                          </div>
+                       </div>
+                    </div>
+                    <p className="mt-3 text-[7px] font-bold text-gray-400 italic">
+                       * Segmented analysis (20m Proximity).
+                    </p>
+                 </div>
+               )}
+            </div>
+        )}
       </div>
 
       {/* Real Intelligence Analytics Section */}

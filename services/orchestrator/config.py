@@ -7,6 +7,7 @@ import os
 # Downstream service URLs
 INFERENCE_SERVICE_URL = os.getenv("INFERENCE_SERVICE_URL", "http://localhost:8001")
 COMPLAINT_SERVICE_URL = os.getenv("COMPLAINT_SERVICE_URL", "http://localhost:8002")
+BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:5000/api")
 
 # Server
 HOST = os.getenv("ORCHESTRATOR_HOST", "0.0.0.0")
