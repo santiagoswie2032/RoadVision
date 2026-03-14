@@ -24,7 +24,7 @@ import {
   Calendar,
   MapPin
 } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 ChartJS.register(
   CategoryScale,

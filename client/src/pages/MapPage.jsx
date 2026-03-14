@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { AlertTriangle, ShieldCheck, MapIcon as MapIconLucide, Layers } from 'lucide-react';
 import PotholeMap from '../components/PotholeMap';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
 
 const MapPage = () => {
   const { t } = useLanguage();

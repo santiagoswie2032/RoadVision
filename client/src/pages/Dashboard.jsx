@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
 import { 
   AlertTriangle, 
   AlertCircle, 
@@ -167,14 +167,10 @@ const Dashboard = () => {
       {/* Analytics Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10 text-left">
         {[
-          { label: t('dashboard.stats_detected'), value: stats.total, icon: <MapPin />, color: 'blue', desc: t('dashboard.stats_detected_desc') },
-          { label: t('map.critical'), value: stats.high, icon: <AlertTriangle />, color: 'red', desc: t('dashboard.stats_critical_desc') },
-          { label: t('dashboard.stats_pending'), value: stats.pending, icon: <Clock3 />, color: 'orange', desc: t('dashboard.stats_pending_desc') },
-          { label: t('dashboard.stats_resolved'), value: stats.fixed, icon: <CheckCircle2 />, color: 'green', desc: t('dashboard.stats_resolved_desc') },
-          { label: 'Total Reported', value: stats.total, icon: <MapPin />, desc: 'Total tracked incidents', borderClass: 'border-b-blue-500', bgClass: 'bg-blue-50', textClass: 'text-blue-600', decorClass: 'bg-blue-50' },
-          { label: 'Critical Damage', value: stats.high, icon: <AlertTriangle />, desc: 'Immediate attention', borderClass: 'border-b-red-500', bgClass: 'bg-red-50', textClass: 'text-red-600', decorClass: 'bg-red-50' },
-          { label: 'Pending Repairs', value: stats.pending, icon: <Clock3 />, desc: 'Active tickets', borderClass: 'border-b-orange-500', bgClass: 'bg-orange-50', textClass: 'text-orange-600', decorClass: 'bg-orange-50' },
-          { label: 'Resolved Tickets', value: stats.fixed, icon: <CheckCircle2 />, desc: 'Successfully restored', borderClass: 'border-b-green-500', bgClass: 'bg-green-50', textClass: 'text-green-600', decorClass: 'bg-green-50' },
+          { label: t('dashboard.stats_detected'), value: stats.total, icon: <MapPin />, desc: t('dashboard.stats_detected_desc'), borderClass: 'border-b-blue-500', bgClass: 'bg-blue-50', textClass: 'text-blue-600', decorClass: 'bg-blue-50' },
+          { label: t('dashboard.stats_critical'), value: stats.high, icon: <AlertTriangle />, desc: t('dashboard.stats_critical_desc'), borderClass: 'border-b-red-500', bgClass: 'bg-red-50', textClass: 'text-red-600', decorClass: 'bg-red-50' },
+          { label: t('dashboard.stats_pending'), value: stats.pending, icon: <Clock3 />, desc: t('dashboard.stats_pending_desc'), borderClass: 'border-b-orange-500', bgClass: 'bg-orange-50', textClass: 'text-orange-600', decorClass: 'bg-orange-50' },
+          { label: t('dashboard.stats_resolved'), value: stats.fixed, icon: <CheckCircle2 />, desc: t('dashboard.stats_resolved_desc'), borderClass: 'border-b-green-500', bgClass: 'bg-green-50', textClass: 'text-green-600', decorClass: 'bg-green-50' },
         ].map((card, i) => (
           <div key={i} className={`bg-white rounded-2xl border border-gray-100 shadow-sm p-5 md:p-6 relative overflow-hidden group hover:shadow-md transition-all border-b-4 ${card.borderClass}`}>
              <div className={`p-2.5 md:p-3 rounded-xl ${card.bgClass} ${card.textClass} inline-block mb-3 md:mb-4 group-hover:scale-110 transition-transform`}>

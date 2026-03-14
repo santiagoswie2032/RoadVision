@@ -12,7 +12,8 @@ import {
 } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useLanguage } from '../context/LanguageContext';
+import { useLanguage } from '../hooks/useLanguage';
+import nhaiLogo from '../assets/NHAI.jpeg';
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
@@ -40,7 +41,7 @@ const Sidebar = ({ onClose }) => {
         
         <div className="w-20 h-20 md:w-24 md:h-24 bg-[#1a237e] rounded-full flex items-center justify-center mb-3 shadow-2xl border-4 border-white/20 p-1 relative overflow-hidden group">
             <div className="absolute inset-0 bg-white rounded-full"></div>
-            <img src="/NHAI.jpeg" className="w-[85%] h-[85%] object-contain relative z-10" alt="NHAI Logo" />
+            <img src={nhaiLogo} className="w-[85%] h-[85%] object-contain relative z-10" alt="NHAI Logo" />
         </div>
         <h2 className="text-xs md:text-sm font-semibold text-center uppercase tracking-wider text-orange-400">{t('common.officer')} {t('common.portal')}</h2>
         <p className="text-[10px] text-center text-white/60">{t('welcome.gov_india')}</p>
