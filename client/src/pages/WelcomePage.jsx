@@ -3,9 +3,14 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useLanguage } from '../hooks/useLanguage';
-import emblem from '../assets/emblem.jpeg';
-import pmImage from '../assets/pm.jpg';
-import ministryBanner from '../assets/ministry.png';
+
+const emblem = "/emblem.jpeg";
+const pmImage = "/emblem.jpeg"; // User requested emblem for "2nd img" (PM portrait)
+const ministryBanner = "/ministry.png";
+const diLogo = "/DI.jpeg";
+const miLogo = "/MI.jpeg";
+const nhaiLogo = "/NHAI.jpeg";
+
 import { 
   BrainCircuit, 
   MapPin, 
@@ -58,6 +63,7 @@ const WelcomePage = () => {
               src={emblem} 
               alt="Emblem of India" 
               className="h-16 md:h-20 w-auto"
+              onError={(e) => { e.target.src = "https://mod.gov.in/sites/all/themes/mod/images/emblem-inner.png" }}
             />
             <div className="hidden lg:flex flex-col">
               <p className="text-xs font-bold text-[#ea580c] tracking-widest uppercase text-left">{t('welcome.gov_india')}</p>
@@ -82,13 +88,6 @@ const WelcomePage = () => {
                 {t('welcome.cta_login')}
               </button>
             )}
-            <div className="w-12 h-12 md:w-20 md:h-24 rounded-[1.5rem] overflow-hidden border-2 border-[#1a237e]/10 shadow-lg flex-shrink-0">
-              <img 
-                src={pmImage} 
-                alt={t('welcome.pm_name')} 
-                className="w-full h-full object-cover transition-all"
-              />
-            </div>
           </div>
         </div>
       </header>
@@ -108,6 +107,7 @@ const WelcomePage = () => {
                 src={ministryBanner} 
                 alt={t('welcome.ministry')} 
                 className="w-full h-[200px] md:h-[400px] object-cover"
+                onError={(e) => { e.target.src = "https://images.unsplash.com/photo-1541339907198-e08756ebafe3?q=80&w=1000&auto=format&fit=crop" }}
               />
             </motion.div>
 
@@ -151,7 +151,7 @@ const WelcomePage = () => {
                 {/* Background with Overlay */}
                 <div 
                   className="absolute inset-0 bg-cover bg-center bg-fixed"
-                  style={{ backgroundImage: 'url("/accident.jpeg")' }}
+                  style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1542037104857-ffbb0b9155fb?q=80&w=1000&auto=format&fit=crop")' }}
                 >
                   <div className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"></div>
                 </div>
@@ -225,9 +225,9 @@ const WelcomePage = () => {
       <footer className="bg-white py-12 border-t border-gray-100 w-full">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="flex flex-wrap justify-center gap-8 md:gap-16 mb-8 items-center">
-             <img src="/DI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="Digital India" />
-             <img src="/MI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="Make in India" />
-             <img src="/NHAI.jpeg" className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer" alt="NHAI" />
+             <img src={diLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="Digital India" />
+             <img src={miLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="Make in India" />
+             <img src={nhaiLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="NHAI" />
           </div>
           <div className="w-16 h-1 bg-[#ea580c] mx-auto mb-6 rounded-full"></div>
           <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em] max-w-2xl mx-auto leading-loose">
@@ -241,4 +241,3 @@ const WelcomePage = () => {
 };
 
 export default WelcomePage;
-

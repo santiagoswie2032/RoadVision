@@ -36,6 +36,7 @@ const Layout = ({ children }) => {
                 <div className="flex items-center space-x-4 opacity-70 grayscale hover:grayscale-0 transition-all">
                   <img src="/DI.jpeg" className="h-6 w-auto" alt="Digital India" />
                   <img src="/MI.jpeg" className="h-6 w-auto" alt="Make in India" />
+                  <img src="/NHAI.jpeg" className="h-6 w-auto" alt="NHAI" />
                 </div>
                 <div className="h-4 w-px bg-gray-300 hidden sm:block"></div>
                 <div className="flex space-x-4">

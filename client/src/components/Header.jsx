@@ -2,7 +2,8 @@ import { Bell, Search, HelpCircle, Menu, X, Info, AlertTriangle } from 'lucide-r
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
-import emblem from '../assets/emblem.jpeg';
+// import emblem from '../assets/emblem.jpeg';
+const emblem = "/emblem.jpeg";
 
 const Header = ({ onMenuClick }) => {
   const { t } = useLanguage();
@@ -109,14 +110,6 @@ const Header = ({ onMenuClick }) => {
             >
                 <HelpCircle size={20} />
             </button>
-            <div className="flex items-center ml-1 md:ml-2 bg-gray-50 border border-gray-200 px-3 md:px-4 py-1.5 md:py-2 rounded-lg shadow-sm">
-                <img 
-                  src={emblem} 
-                  alt="Emblem of India" 
-                  className="h-6 md:h-8 w-auto block"
-                  onError={(e) => { e.target.src = "https://mod.gov.in/sites/all/themes/mod/images/emblem-inner.png" }}
-                />
-            </div>
         </div>
       </div>
 

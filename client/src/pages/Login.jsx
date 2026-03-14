@@ -3,10 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ShieldCheck, Lock, Mail, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../hooks/useLanguage';
-import emblem from '../assets/emblem.jpeg';
-import nhaiLogo from '../assets/NHAI.jpeg';
-import diLogo from '../assets/DI.jpeg';
-import miLogo from '../assets/MI.jpeg';
+
+// Use local assets from public folder
+const emblem = "/emblem.jpeg";
+const nhaiLogo = "/NHAI.jpeg"; 
+const diLogo = "/DI.jpeg";
+const miLogo = "/MI.jpeg";
 
 const Login = () => {
   const { t } = useLanguage();
@@ -45,6 +47,7 @@ const Login = () => {
                src={emblem} 
                alt="Emblem of India" 
                className="h-16 w-auto mx-auto"
+               onError={(e) => { e.target.src = "https://mod.gov.in/sites/all/themes/mod/images/emblem-inner.png" }}
              />
           </div>
           <h1 className="text-2xl font-black text-[#1a237e] uppercase tracking-tighter leading-tight mb-1">

@@ -13,8 +13,9 @@ import {
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import { useLanguage } from '../hooks/useLanguage';
-// import nhaiLogo from '../assets/NHAI.jpeg'; // Missing file
-const nhaiLogo = "/emblem.jpeg"; // Use emblem from public folder
+
+// Use local assets from public folder
+const nhaiLogo = "/NHAI.jpeg";
 
 const Sidebar = ({ onClose }) => {
   const location = useLocation();
