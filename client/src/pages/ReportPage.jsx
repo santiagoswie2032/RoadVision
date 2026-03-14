@@ -47,6 +47,10 @@ const ReportPage = () => {
   const [isVideo, setIsVideo] = useState(false);
   const [annotatedVideoUrl, setAnnotatedVideoUrl] = useState('');
 
+  // Simulation states
+  const [simulationLogs, setSimulationLogs] = useState([]);
+  const [isSimulating, setIsSimulating] = useState(false);
+
   // Auto-capture location on mount
   useEffect(() => {
     handleGetLocation();
@@ -66,6 +70,17 @@ const ReportPage = () => {
     }
   }, [search]);
 
+  // Effect to handle auto-submission after detection
+  useEffect(() => {
+    const potholeCount = detectionResult?.pothole_count ?? detectionResult?.total_potholes_detected ?? 0;
+    if (potholeCount > 0 && !detectingPotholes && !isSimulating && !success && formData.imageUrl) {
+      const timer = setTimeout(() => {
+        handleSubmit({ preventDefault: () => {} });
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [detectionResult, detectingPotholes]);
+
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -74,6 +89,7 @@ const ReportPage = () => {
     setDetectionResult(null);
     setAnnotatedImageUrl('');
     setAnnotatedVideoUrl('');
+    setSimulationLogs([]);
 
     // Detect if it's a video or image
     const fileIsVideo = file.type.startsWith('video');
@@ -124,12 +140,7 @@ const ReportPage = () => {
           setFormData(prev => ({
             ...prev,
             severityLevel: detection.overall_severity_level || prev.severityLevel,
-            description: `AI Video Detection: ${potholeCount} pothole(s) across ${detection.frames_with_potholes} frames. Severity: ${detection.overall_severity_level} (score: ${detection.overall_severity_score}/100). Confidence: ${(detection.confidence_avg * 100).toFixed(1)}%. ID: ${detection.detection_id}`
-          }));
-        } else {
-          setFormData(prev => ({
-            ...prev,
-            description: 'AI video scan complete — no potholes detected.'
+            description: `AI Video Detection: ${potholeCount} pothole(s) found. ID: ${detection.detection_id}`
           }));
         }
       } else {
@@ -146,18 +157,12 @@ const ReportPage = () => {
           setFormData(prev => ({
             ...prev,
             severityLevel: detection.overall_severity_level || prev.severityLevel,
-            description: `AI Detection: ${detection.pothole_count} pothole(s) found. Severity: ${detection.overall_severity_level} (score: ${detection.overall_severity_score}/100). Confidence: ${(detection.confidence_avg * 100).toFixed(1)}%. ID: ${detection.detection_id}`
-          }));
-        } else {
-          setFormData(prev => ({
-            ...prev,
-            description: 'AI scan complete — no potholes detected in this image.'
+            description: `AI Detection: ${detection.pothole_count} pothole(s) found. ID: ${detection.detection_id}`
           }));
         }
       }
     } catch (err) {
-      console.error("Detection error:", err);
-      setError(`AI Detection failed: ${err.message}. Make sure the inference service is running on port 8001.`);
+      setError(`AI Detection failed: ${err.message}`);
     } finally {
       setDetectingPotholes(false);
     }
@@ -165,56 +170,29 @@ const ReportPage = () => {
 
   const handleGetLocation = () => {
     setLocating(true);
-    setError('');
-    setCaptureSuccess(false);
-
-    const options = {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    };
-
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setFormData({
-            ...formData,
+          setFormData(prev => ({
+            ...prev,
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6)
-          });
-          setLocating(false);
-          setCaptureSuccess(true);
-          setTimeout(() => setCaptureSuccess(false), 3000);
-        },
-        (err) => {
-          let msg = t('report.err_fetch_loc');
-          if (err.code === err.PERMISSION_DENIED) msg = t('report.err_permission_denied');
-          if (err.code === err.TIMEOUT) msg = t('report.err_timeout');
-          
-          setError(msg);
+          }));
           setLocating(false);
         },
-        options
+        () => setLocating(false),
+        { enableHighAccuracy: true, timeout: 10000 }
       );
-    } else {
-      setError(t('report.err_not_supported'));
-      setLocating(false);
     }
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!formData.imageUrl) {
-      setError("Please upload an image evidence first.");
-      return;
-    }
-    if (!formData.latitude || !formData.longitude) {
-      setError("Location coordinates are required. Please enable GPS.");
-      return;
-    }
+    if (e && e.preventDefault) e.preventDefault();
+    if (!formData.imageUrl || !formData.latitude) return;
 
     setLoading(true);
-    setError('');
+    setIsSimulating(true);
+    setSimulationLogs(["Process initiated..."]);
 
     try {
       const confidence = detectionResult?.confidence_avg || 1.0;
@@ -224,44 +202,60 @@ const ReportPage = () => {
         severityLevel: formData.severityLevel,
         confidence: confidence,
         imageUrl: annotatedImageUrl || formData.imageUrl,
-        description: formData.description || 'Reported via mobile image upload'
+        description: formData.description || 'Auto-reported via AI survey'
       });
       
-      setSuccess(true);
-      setTimeout(() => navigate('/map'), 3000);
+      // Simulation steps
+      setTimeout(() => {
+        setSimulationLogs(prev => [...prev, "Email dispatched to vikalpbordekar@gmail.com"]);
+      }, 1500);
+
+      setTimeout(() => {
+        setSimulationLogs(prev => [...prev, "Mail read by Authority (PGPortal Simulation active)"]);
+        setSuccess(true);
+        setLoading(false);
+      }, 4000);
+
     } catch (err) {
       setError(err.response?.data?.message || t('common.error'));
-    } finally {
       setLoading(false);
+      setIsSimulating(false);
     }
   };
 
   const clearImage = () => {
-    if (localPreview) URL.revokeObjectURL(localPreview);
     setLocalPreview('');
     setIsVideo(false);
     setFormData(prev => ({ ...prev, imageUrl: '', description: '' }));
     setDetectionResult(null);
-    setAnnotatedImageUrl('');
-    setAnnotatedVideoUrl('');
+    setSimulationLogs([]);
   };
 
   if (success) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center">
-        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-6 animate-bounce">
-          <CheckCircle2 size={48} className="text-green-600" />
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-4 text-center animate-in fade-in zoom-in duration-500">
+        <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mb-10 shadow-xl border-4 border-white">
+          <CheckCircle2 size={48} className="text-green-600 animate-pulse" />
         </div>
-        <h1 className="text-3xl font-black text-[#1a237e] uppercase tracking-tighter mb-4 italic">{t('report.title')} {t('common.success')}</h1>
-        <p className="text-gray-500 max-w-md font-medium mb-8">
-          {t('common.success_save')}
-        </p>
+        <h1 className="text-4xl font-black text-[#1a237e] uppercase tracking-tighter mb-4 italic">Submission Successful</h1>
+        
+        <div className="bg-white p-8 rounded-[2rem] shadow-2xl border border-gray-100 mb-10 w-full max-w-md text-left space-y-4">
+           {simulationLogs.map((log, i) => (
+             <div key={i} className="flex items-center space-x-3 animate-in slide-in-from-left duration-300">
+                <div className={`w-2 h-2 rounded-full ${i === simulationLogs.length - 1 ? 'bg-orange-500 animate-ping' : 'bg-green-500'}`}></div>
+                <p className={`text-[11px] font-black uppercase tracking-widest ${i === simulationLogs.length - 1 ? 'text-[#1a237e]' : 'text-gray-400'}`}>
+                  {log}
+                </p>
+             </div>
+           ))}
+        </div>
+
         <div className="flex space-x-4">
           <button 
             onClick={() => navigate('/map')}
-            className="px-8 py-3 bg-[#1a237e] text-white rounded-xl font-bold uppercase tracking-widest text-sm shadow-xl hover:bg-blue-900 transition-all flex items-center"
+            className="px-10 py-5 bg-[#1a237e] text-white rounded-[1.5rem] font-black uppercase tracking-widest text-xs shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center"
           >
-            {t('nav.map')} <ArrowRight size={18} className="ml-2" />
+            Open Monitoring Map <ArrowRight size={18} className="ml-3" />
           </button>
         </div>
       </div>
