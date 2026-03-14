@@ -34,7 +34,7 @@ const RecenterMap = ({ center }) => {
 import { SettingsContext } from '../context/SettingsContext';
 import { SearchContext } from '../context/SearchContext';
 
-const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
+const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPotholeId }) => {
   const navigate = useNavigate();
   const { gpsEnabled } = useContext(SettingsContext);
   const { searchCoords } = useContext(SearchContext);
@@ -43,11 +43,18 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
   const [isLocating, setIsLocating] = useState(false);
   const [geoError, setGeoError] = useState('');
 
+  // Sync with userLocation prop from parent MapPage
+  useEffect(() => {
+    if (userLocation) {
+      setCenter([userLocation.lat, userLocation.lng]);
+      setHasUserLocation(true);
+    }
+  }, [userLocation]);
+
   // Handle Search Result Updates
   useEffect(() => {
     if (searchCoords) {
       setCenter([searchCoords.lat, searchCoords.lng]);
-      setHasUserLocation(true); // Treat search result like a location lock for zoom purposes
     }
   }, [searchCoords]);
 
@@ -79,8 +86,6 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
         if (error.code === error.POSITION_UNAVAILABLE) msg = "Location information unavailable";
         
         setGeoError(msg);
-        console.warn(`Geolocation error: ${msg}`);
-        
         if (!isManual && potholes && potholes.length > 0) {
           setCenter([potholes[0].latitude, potholes[0].longitude]);
         }
@@ -90,26 +95,34 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
   };
 
   useEffect(() => {
-    getUserLocation();
+    if (!userLocation) {
+      getUserLocation();
+    }
   }, [potholes]);
 
   return (
-    <div style={{ height: '100%', width: '100%', minHeight: '500px' }} className="rounded-2xl overflow-hidden border border-gray-200 shadow-inner bg-gray-50 relative">
+    <div style={{ height: '100%', width: '100%', minHeight: '500px' }} className="rounded-2xl overflow-hidden border border-gray-200 shadow-inner bg-gray-50 relative animate-in fade-in duration-700">
       {geoError && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1100] bg-red-600 text-white px-4 py-2 rounded-full text-[10px] font-bold shadow-xl animate-bounce">
           {geoError}
         </div>
       )}
 
+      {nearestPotholeId && (
+        <div className="absolute top-4 right-4 z-[1100] bg-orange-500 text-white px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-2xl animate-pulse">
+          🎯 Target Locked: Proximity Warning Active
+        </div>
+      )}
+
       <MapContainer 
         center={center} 
-        zoom={hasUserLocation ? 14 : 12} 
+        zoom={hasUserLocation ? 16 : 12} 
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
       >
         <RecenterMap center={center} />
         
-        {/* Dynamic Tile Layer based on activeLayer prop */}
+        {/* Tiles */}
         {activeLayer === 'street' && (
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -130,16 +143,18 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
         )}
 
         <LayersControl position="topright">
-          <LayersControl.Overlay checked name="Pothole Markers">
+          <LayersControl.Overlay checked name="Detected Hazards">
             <LayerGroup>
               {potholes && potholes.map((pothole) => {
-                let color = '#10B981'; // Green for low severity
-                if (pothole.severityLevel === 'medium') color = '#F59E0B'; // Orange
-                if (pothole.severityLevel === 'high') color = '#EF4444'; // Red
+                const isNearest = pothole._id === nearestPotholeId;
+                let color = isNearest ? '#ff0000' : '#10B981'; 
                 
-                // Status overrides severity color
-                if (pothole.status === 'under_repair') color = '#EAB308'; // Yellow for construction
-                if (pothole.status === 'fixed') color = '#4B5563'; // Gray
+                if (!isNearest) {
+                  if (pothole.severityLevel === 'medium') color = '#F59E0B'; 
+                  if (pothole.severityLevel === 'high') color = '#EF4444'; 
+                  if (pothole.status === 'under_repair') color = '#EAB308'; 
+                  if (pothole.status === 'fixed') color = '#4B5563';
+                }
 
                 return (
                   <Marker 
@@ -149,6 +164,11 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                   >
                     <Popup>
                       <div className="p-3 min-w-[220px] font-sans">
+                        {isNearest && (
+                          <div className="mb-2 bg-red-600 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded flex items-center justify-center animate-pulse">
+                            🚨 Nearest Hazard
+                          </div>
+                        )}
                         <div className="flex justify-between items-center mb-2 pb-2 border-b border-gray-100">
                           <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">Detection Index</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${pothole.status === 'fixed' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'}`}>
@@ -157,7 +177,7 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                         </div>
                         
                         <h3 className="text-sm font-bold text-[#1a237e] mb-2 flex items-center">
-                          Level: <span style={{ color }} className="ml-1 uppercase">{pothole.severityLevel}</span>
+                          Level: <span style={{ color: isNearest ? 'red' : color }} className="ml-1 uppercase">{pothole.severityLevel}</span>
                         </h3>
                         
                         <div className="space-y-1.5 mb-3">
@@ -191,7 +211,7 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
             </LayerGroup>
           </LayersControl.Overlay>
 
-          <LayersControl.Overlay checked name="Search Results">
+          <LayersControl.Overlay checked name="Active Search">
              <LayerGroup>
                 {searchCoords && (
                   <Marker 
@@ -203,7 +223,6 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                           <div class="w-8 h-8 bg-[#1a237e] rounded-full border-4 border-white shadow-xl flex items-center justify-center text-white">
                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                           </div>
-                          <div class="bg-[#1a237e] text-white text-[8px] font-black px-2 py-0.5 rounded mt-1 uppercase whitespace-nowrap shadow-lg">Searched Location</div>
                         </div>
                       `,
                       iconSize: [40, 40],
@@ -213,7 +232,7 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
                     <Popup>
                       <div className="p-2 font-bold text-xs">
                         <p className="text-[#1a237e] uppercase tracking-tighter mb-1 font-black">Search Result</p>
-                        <p className="text-gray-600 font-medium leading-tight">{searchCoords.displayName}</p>
+                        <p className="text-gray-600 font-medium">{searchCoords.displayName}</p>
                       </div>
                     </Popup>
                   </Marker>
@@ -221,16 +240,21 @@ const PotholeMap = ({ potholes, activeLayer = 'street' }) => {
              </LayerGroup>
           </LayersControl.Overlay>
 
-          <LayersControl.Overlay name="User Location">
+          <LayersControl.Overlay checked name="My Location">
              <LayerGroup>
-                {hasUserLocation && (
-                  <Marker position={center} icon={L.divIcon({
+                {userLocation && (
+                  <Marker position={[userLocation.lat, userLocation.lng]} icon={L.divIcon({
                     className: 'user-location-marker',
-                    html: `<div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg shadow-blue-500/50"></div>`,
-                    iconSize: [20, 20],
-                    iconAnchor: [10, 10]
+                    html: `
+                      <div class="relative flex items-center justify-center">
+                        <div class="absolute w-8 h-8 bg-blue-500 rounded-full opacity-20 animate-ping"></div>
+                        <div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg shadow-blue-500/50 z-10"></div>
+                      </div>
+                    `,
+                    iconSize: [32, 32],
+                    iconAnchor: [16, 16]
                   })}>
-                    <Popup>You are here</Popup>
+                    <Popup>Live Tracking Active</Popup>
                   </Marker>
                 )}
              </LayerGroup>

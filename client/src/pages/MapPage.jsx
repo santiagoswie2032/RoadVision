@@ -1,10 +1,10 @@
 import { useState, useEffect, useContext } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../services/api';
-import { 
-  AlertTriangle, 
-  ShieldCheck, 
-  MapIcon as MapIconLucide, 
+import {
+  AlertTriangle,
+  ShieldCheck,
+  MapIcon as MapIconLucide,
   Layers,
   BarChart3,
   TrendingUp,
@@ -31,6 +31,8 @@ import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import PotholeMap from '../components/PotholeMap';
 import { useLanguage } from '../hooks/useLanguage';
 import { SearchContext } from '../context/SearchContext';
+import { SettingsContext } from '../context/SettingsContext';
+import { X as CloseIcon } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -45,6 +47,31 @@ ChartJS.register(
   Filler
 );
 
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371e3; // metres
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // meters
+};
+
+const speak = (text) => {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Cancel current to avoid queueing
+    const msg = new SpeechSynthesisUtterance();
+    msg.text = text;
+    msg.rate = 0.9;
+    window.speechSynthesis.speak(msg);
+  }
+};
+
 const MapPage = () => {
   const { t } = useLanguage();
   const [potholes, setPotholes] = useState([]);
@@ -53,23 +80,79 @@ const MapPage = () => {
   const [showLayers, setShowLayers] = useState(false);
   const [activeLayer, setActiveLayer] = useState('street'); // 'street', 'satellite', 'dark'
 
+  // Real-time tracking state
+  const [userPos, setUserPos] = useState(null);
+  const [nearestPothole, setNearestPothole] = useState(null);
+  const [lastAlertedId, setLastAlertedId] = useState(null);
+
+  const { dismissedAlerts, setDismissedAlerts } = useContext(SettingsContext);
+
   const [searchParams] = useSearchParams();
   const { setSearchCoords } = useContext(SearchContext);
 
   useEffect(() => {
     fetchPotholes();
-    
+
     // Check for Deep Link coordinates
     const lat = searchParams.get('lat');
     const lng = searchParams.get('lng');
     if (lat && lng) {
-      setSearchCoords({ 
-        lat: parseFloat(lat), 
-        lng: parseFloat(lng), 
-        displayName: `Located: ${lat}, ${lng}` 
+      setSearchCoords({
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        displayName: `Located: ${lat}, ${lng}`
       });
     }
+
+    // Start real-time position stalking for proximity alerts
+    let watchId = null;
+    if ("geolocation" in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          setUserPos({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
+        },
+        (err) => console.warn("GPS tracking error:", err),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
+      );
+    }
+
+    return () => {
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    };
   }, [searchParams, setSearchCoords]);
+
+  // Proximity Logic Engine
+  useEffect(() => {
+    if (!userPos || potholes.length === 0) return;
+
+    let closest = null;
+    let minDistance = Infinity;
+
+    potholes.forEach(p => {
+      if (p.status === 'fixed' || dismissedAlerts.includes(p._id)) return; // Don't alert for fixed or dismissed holes
+      const dist = calculateDistance(userPos.lat, userPos.lng, p.latitude, p.longitude);
+      if (dist < minDistance) {
+        minDistance = dist;
+        closest = { ...p, distance: dist };
+      }
+    });
+
+    // Alert if within 200m
+    if (closest && closest.distance <= 200) {
+      setNearestPothole(closest);
+
+      // Voice warning if it's a "new" proximity alert
+      if (closest._id !== lastAlertedId) {
+        speak("Warning, road defect detected ahead. Extreme caution advised.");
+        setLastAlertedId(closest._id);
+      }
+    } else {
+      setNearestPothole(null);
+    }
+  }, [userPos, potholes, lastAlertedId, dismissedAlerts]);
 
   const fetchPotholes = async () => {
     try {
@@ -80,6 +163,10 @@ const MapPage = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNavigate = (p) => {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}&travelmode=driving`, '_blank');
   };
 
   // Analytics Helpers
@@ -138,7 +225,46 @@ const MapPage = () => {
   };
 
   return (
-    <div className="p-4 md:p-8 flex flex-col overflow-y-auto text-left min-h-screen scroll-smooth">
+    <div className="p-4 md:p-8 flex flex-col overflow-y-auto text-left min-h-screen scroll-smooth relative">
+
+      {/* Real-time Proximity Alert Overlay */}
+      {nearestPothole && (
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-[2000] w-[90%] max-w-lg animate-in slide-in-from-top-10 duration-500">
+           <div className="bg-[#1a237e] text-white p-4 md:p-6 rounded-[2rem] shadow-2xl border-4 border-orange-500 flex items-center justify-between group overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-orange-600/20 to-transparent pointer-events-none"></div>
+
+              <div className="flex items-center space-x-4 relative z-10">
+                 <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center animate-pulse shrink-0">
+                    <AlertTriangle size={24} className="text-white" />
+                 </div>
+                 <div className="text-left pr-8">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400 mb-0.5">Tactical Alert</p>
+                    <h3 className="text-sm md:text-base font-black italic uppercase leading-tight">Defect Detected Ahead</h3>
+                    <p className="text-[11px] font-bold text-white/70">Approximately <span className="text-white text-sm">{nearestPothole.distance.toFixed(0)}</span> meters away</p>
+                 </div>
+              </div>
+
+              <div className="flex flex-col space-y-2 relative z-10">
+                <button
+                  onClick={() => handleNavigate(nearestPothole)}
+                  className="bg-white text-[#1a237e] px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-500 hover:text-white transition-all shadow-lg active:scale-95 flex items-center"
+                >
+                  Navigate <MapPin size={12} className="ml-1.5" />
+                </button>
+              </div>
+
+              {/* Dismiss Button */}
+              <button 
+                onClick={() => setDismissedAlerts(prev => [...prev, nearestPothole._id])}
+                className="absolute top-4 right-4 p-1.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-20 group-hover:scale-110"
+                title="Dismiss Alert"
+              >
+                <CloseIcon size={16} />
+              </button>
+           </div>
+        </div>
+      )}
+
       {/* Page Header */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 md:mb-8 space-y-4 lg:space-y-0 text-left">
         <div>
@@ -158,7 +284,7 @@ const MapPage = () => {
               </span>
            </div>
            <div className="relative">
-             <button 
+             <button
                onClick={() => setShowLayers(!showLayers)}
                className={`flex items-center space-x-2 border px-3 md:px-4 py-2 rounded-xl text-[10px] md:text-sm font-bold transition-all shadow-sm ${showLayers ? 'bg-[#1a237e] text-white border-[#1a237e]' : 'bg-white text-gray-700 border-gray-200 hover:bg-gray-50'}`}
              >
@@ -217,9 +343,9 @@ const MapPage = () => {
                 </div>
              </div>
         ) : (
-            <PotholeMap potholes={potholes} activeLayer={activeLayer} />
+            <PotholeMap potholes={potholes} activeLayer={activeLayer} nearestPotholeId={nearestPothole?._id} userLocation={userPos} />
         )}
-        
+
         <div className="absolute bottom-4 left-4 md:bottom-6 md:left-6 z-[1000] bg-white/95 backdrop-blur-md p-3 md:p-4 rounded-xl shadow-xl border border-gray-100 min-w-[140px] md:min-w-[180px] hidden sm:block text-left">
            <p className="text-[9px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 md:mb-3 border-b border-gray-100 pb-2">{t('map.legend')}</p>
            <div className="space-y-2 md:space-y-2.5">
@@ -266,14 +392,14 @@ const MapPage = () => {
                      <h3 className="font-black text-[#1a237e] uppercase text-xs tracking-widest">Structural Risk Profile</h3>
                   </div>
                   <div className="h-[250px]">
-                     <Bar 
-                        data={getSeverityData()} 
+                     <Bar
+                        data={getSeverityData()}
                         options={{
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: { y: { beginAtZero: true }, x: { grid: { display: false } } }
-                        }} 
+                        }}
                      />
                   </div>
                </div>
@@ -285,7 +411,7 @@ const MapPage = () => {
                      <h3 className="font-black text-[#1a237e] uppercase text-xs tracking-widest">Resolution Cycle Efficiency</h3>
                   </div>
                   <div className="h-[250px]">
-                     <Doughnut 
+                     <Doughnut
                         data={getStatusData()}
                         options={{
                         responsive: true,
@@ -303,7 +429,7 @@ const MapPage = () => {
                      <h3 className="font-black text-[#1a237e] uppercase text-xs tracking-widest">Defect Occurrence Trend (Real-time)</h3>
                   </div>
                   <div className="h-[300px]">
-                     <Line 
+                     <Line
                         data={getTrendData()}
                         options={{
                         responsive: true,
@@ -340,4 +466,3 @@ const MapPage = () => {
 };
 
 export default MapPage;
-

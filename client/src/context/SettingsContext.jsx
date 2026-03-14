@@ -13,6 +13,8 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  const [dismissedAlerts, setDismissedAlerts] = useState([]);
+
   useEffect(() => {
     localStorage.setItem('gpsEnabled', JSON.stringify(gpsEnabled));
   }, [gpsEnabled]);
@@ -27,7 +29,9 @@ export const SettingsProvider = ({ children }) => {
         gpsEnabled, 
         setGpsEnabled, 
         notificationsEnabled, 
-        setNotificationsEnabled 
+        setNotificationsEnabled,
+        dismissedAlerts,
+        setDismissedAlerts
       }}
     >
       {children}

@@ -28,7 +28,7 @@ const Header = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
-  const { notificationsEnabled } = useContext(SettingsContext);
+  const { notificationsEnabled, dismissedAlerts } = useContext(SettingsContext);
   const { searchQuery, setSearchQuery, setSearchCoords } = useContext(SearchContext);
   
   const [notifications, setNotifications] = useState([]);
@@ -45,7 +45,7 @@ const Header = () => {
     } else {
       setNotifications([]);
     }
-  }, [notificationsEnabled]);
+  }, [notificationsEnabled, dismissedAlerts]);
 
   const handleSearch = async (e) => {
     if (e.key !== 'Enter' || !searchQuery.trim()) return;
@@ -80,8 +80,9 @@ const Header = () => {
   const fetchNotifications = async () => {
     try {
       const { data } = await api.get('/potholes');
+      // Link with dismissedAlerts from SettingsContext if available, otherwise just severity
       const recentHighSeverity = data
-        .filter(p => p.severityLevel === 'high' && p.status === 'reported')
+        .filter(p => p.severityLevel === 'high' && p.status === 'reported' && !dismissedAlerts?.includes(p._id))
         .sort((a, b) => new Date(b.detectedAt) - new Date(a.detectedAt));
       setNotifications(recentHighSeverity);
     } catch (err) {
