@@ -376,6 +376,29 @@ async def detect_video(
         cap.release()
         out_writer.release()
 
+        # Re-encode to H.264 so browsers can play it
+        import subprocess
+        h264_path = out_path.replace(".mp4", "_h264.mp4")
+        try:
+            subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", out_path,
+                    "-c:v", "libx264", "-preset", "fast",
+                    "-movflags", "+faststart",
+                    "-pix_fmt", "yuv420p",
+                    h264_path,
+                ],
+                capture_output=True, timeout=300,
+            )
+            if os.path.exists(h264_path) and os.path.getsize(h264_path) > 0:
+                os.replace(h264_path, out_path)  # overwrite with browser-compatible version
+            else:
+                logger.warning("ffmpeg output empty, using raw mp4v file")
+        except FileNotFoundError:
+            logger.warning("ffmpeg not found — video may not play in browser")
+        except Exception as e:
+            logger.warning(f"ffmpeg re-encode failed: {e}")
+
     finally:
         os.unlink(tmp_path)
 

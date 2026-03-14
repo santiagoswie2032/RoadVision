@@ -11,6 +11,7 @@ import {
   Navigation,
   BrainCircuit,
   X,
+  Video,
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -41,6 +42,8 @@ const ReportPage = () => {
   const [detectingPotholes, setDetectingPotholes] = useState(false);
   const [detectionResult, setDetectionResult] = useState(null);
   const [annotatedImageUrl, setAnnotatedImageUrl] = useState('');
+  const [isVideo, setIsVideo] = useState(false);
+  const [annotatedVideoUrl, setAnnotatedVideoUrl] = useState('');
 
   // Auto-capture location on mount
   useEffect(() => {
@@ -61,15 +64,20 @@ const ReportPage = () => {
     }
   }, [search]);
 
-  const handleImageUpload = async (e) => {
+  const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setError('');
     setDetectionResult(null);
     setAnnotatedImageUrl('');
+    setAnnotatedVideoUrl('');
 
-    // Instant local preview (no upload needed)
+    // Detect if it's a video or image
+    const fileIsVideo = file.type.startsWith('video');
+    setIsVideo(fileIsVideo);
+
+    // Instant local preview
     const previewUrl = URL.createObjectURL(file);
     setLocalPreview(previewUrl);
     setFormData(prev => ({ ...prev, imageUrl: previewUrl }));
@@ -83,7 +91,10 @@ const ReportPage = () => {
       if (formData.latitude) mlFormData.append('latitude', formData.latitude);
       if (formData.longitude) mlFormData.append('longitude', formData.longitude);
 
-      const mlResp = await fetch(`${INFERENCE_URL}/v1/detections/image`, {
+      // Pick the right endpoint based on file type
+      const endpoint = fileIsVideo ? '/v1/detections/video' : '/v1/detections/image';
+
+      const mlResp = await fetch(`${INFERENCE_URL}${endpoint}`, {
         method: 'POST',
         body: mlFormData,
       });
@@ -96,28 +107,51 @@ const ReportPage = () => {
       const detection = await mlResp.json();
       setDetectionResult(detection);
 
-      // Build the annotated image URL from the inference service
-      if (detection.annotated_image_url) {
-        const annotUrl = detection.annotated_image_url.startsWith('http')
-          ? detection.annotated_image_url
-          : `${INFERENCE_URL}${detection.annotated_image_url}`;
-        setAnnotatedImageUrl(annotUrl);
-        // Use annotated image as the submission image
-        setFormData(prev => ({ ...prev, imageUrl: annotUrl }));
-      }
-
-      // Auto-fill severity from ML results
-      if (detection.pothole_count > 0) {
-        setFormData(prev => ({
-          ...prev,
-          severityLevel: detection.overall_severity_level || prev.severityLevel,
-          description: `AI Detection: ${detection.pothole_count} pothole(s) found. Severity: ${detection.overall_severity_level} (score: ${detection.overall_severity_score}/100). Confidence: ${(detection.confidence_avg * 100).toFixed(1)}%. ID: ${detection.detection_id}`
-        }));
+      if (fileIsVideo) {
+        // Video: use annotated_video_url
+        if (detection.annotated_video_url) {
+          const vidUrl = detection.annotated_video_url.startsWith('http')
+            ? detection.annotated_video_url
+            : `${INFERENCE_URL}${detection.annotated_video_url}`;
+          setAnnotatedVideoUrl(vidUrl);
+          setFormData(prev => ({ ...prev, imageUrl: vidUrl }));
+        }
+        // Auto-fill from video detection
+        const potholeCount = detection.total_potholes_detected || 0;
+        if (potholeCount > 0) {
+          setFormData(prev => ({
+            ...prev,
+            severityLevel: detection.overall_severity_level || prev.severityLevel,
+            description: `AI Video Detection: ${potholeCount} pothole(s) across ${detection.frames_with_potholes} frames. Severity: ${detection.overall_severity_level} (score: ${detection.overall_severity_score}/100). Confidence: ${(detection.confidence_avg * 100).toFixed(1)}%. ID: ${detection.detection_id}`
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            description: 'AI video scan complete — no potholes detected.'
+          }));
+        }
       } else {
-        setFormData(prev => ({
-          ...prev,
-          description: 'AI scan complete — no potholes detected in this image.'
-        }));
+        // Image: use annotated_image_url
+        if (detection.annotated_image_url) {
+          const annotUrl = detection.annotated_image_url.startsWith('http')
+            ? detection.annotated_image_url
+            : `${INFERENCE_URL}${detection.annotated_image_url}`;
+          setAnnotatedImageUrl(annotUrl);
+          setFormData(prev => ({ ...prev, imageUrl: annotUrl }));
+        }
+        // Auto-fill from image detection
+        if (detection.pothole_count > 0) {
+          setFormData(prev => ({
+            ...prev,
+            severityLevel: detection.overall_severity_level || prev.severityLevel,
+            description: `AI Detection: ${detection.pothole_count} pothole(s) found. Severity: ${detection.overall_severity_level} (score: ${detection.overall_severity_score}/100). Confidence: ${(detection.confidence_avg * 100).toFixed(1)}%. ID: ${detection.detection_id}`
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            description: 'AI scan complete — no potholes detected in this image.'
+          }));
+        }
       }
     } catch (err) {
       console.error("Detection error:", err);
@@ -203,9 +237,11 @@ const ReportPage = () => {
   const clearImage = () => {
     if (localPreview) URL.revokeObjectURL(localPreview);
     setLocalPreview('');
+    setIsVideo(false);
     setFormData(prev => ({ ...prev, imageUrl: '', description: '' }));
     setDetectionResult(null);
     setAnnotatedImageUrl('');
+    setAnnotatedVideoUrl('');
   };
 
   if (success) {
@@ -284,9 +320,9 @@ const ReportPage = () => {
                 >
                   <input 
                     type="file" 
-                    accept="image/*" 
+                    accept="image/*,video/mp4,video/avi,video/mov,video/webm" 
                     ref={fileInputRef}
-                    onChange={handleImageUpload}
+                    onChange={handleFileUpload}
                     className="hidden" 
                   />
 
@@ -296,16 +332,26 @@ const ReportPage = () => {
                         <Camera size={32} />
                       </div>
                       <h3 className="text-xl font-black text-[#1a237e] uppercase tracking-tighter mb-2 italic">{t('report.capture')}</h3>
-                      <p className="text-sm text-gray-400 font-medium max-w-[200px] text-center italic">{t('report.capture_desc')}</p>
+                      <p className="text-sm text-gray-400 font-medium max-w-[250px] text-center italic">Upload an image or video of the road defect</p>
                     </>
                   ) : (
                     <div className="relative rounded-[2rem] overflow-hidden border-[6px] border-white shadow-2xl group/preview">
-                      {/* Show annotated image if available, otherwise original */}
-                      <img 
-                        src={annotatedImageUrl || formData.imageUrl} 
-                        alt="Detection Result" 
-                        className="w-full h-full object-cover max-h-[400px]"
-                      />
+                      {/* Show annotated video or image */}
+                      {isVideo ? (
+                        <video 
+                          src={annotatedVideoUrl || localPreview} 
+                          controls 
+                          autoPlay 
+                          muted
+                          className="w-full max-h-[400px] bg-black"
+                        />
+                      ) : (
+                        <img 
+                          src={annotatedImageUrl || localPreview} 
+                          alt="Detection Result" 
+                          className="w-full h-full object-cover max-h-[400px]"
+                        />
+                      )}
                       
                       {/* ML Processing Overlay */}
                       {detectingPotholes && (
@@ -339,18 +385,22 @@ const ReportPage = () => {
               </div>
 
               {/* ML Detection Results Panel */}
-              {detectionResult && (
+              {detectionResult && (() => {
+                const potholeCount = detectionResult.pothole_count ?? detectionResult.total_potholes_detected ?? 0;
+                return (
                 <div className="mb-8 p-5 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl border border-blue-100 animate-in fade-in slide-in-from-bottom-4">
                   <div className="flex items-center space-x-2 mb-4">
                     <BrainCircuit size={18} className="text-[#1a237e]" />
-                    <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#1a237e]">AI Analysis Complete</span>
+                    <span className="text-[10px] font-black uppercase tracking-[.2em] text-[#1a237e]">
+                      AI {isVideo ? 'Video' : 'Image'} Analysis Complete
+                    </span>
                     <CheckCircle2 size={14} className="text-green-500" />
                   </div>
                   
                   <div className="grid grid-cols-3 gap-3">
                     <div className="bg-white p-3 rounded-xl text-center shadow-sm">
-                      <div className={`text-2xl font-black ${detectionResult.pothole_count > 0 ? 'text-red-500' : 'text-green-500'}`}>
-                        {detectionResult.pothole_count}
+                      <div className={`text-2xl font-black ${potholeCount > 0 ? 'text-red-500' : 'text-green-500'}`}>
+                        {potholeCount}
                       </div>
                       <div className="text-[9px] font-bold uppercase tracking-widest text-gray-400 mt-1">Potholes Found</div>
                     </div>
@@ -371,19 +421,24 @@ const ReportPage = () => {
                     </div>
                   </div>
 
-                  {detectionResult.pothole_count === 0 && (
+                  {potholeCount === 0 && (
                     <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
                       <p className="text-xs font-bold text-green-700">✅ No potholes detected. You can still submit a manual report if you believe there's a defect.</p>
                     </div>
                   )}
 
-                  {detectionResult.pothole_count > 0 && (
+                  {potholeCount > 0 && (
                     <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-xl">
-                      <p className="text-xs font-bold text-orange-700">⚠️ {detectionResult.pothole_count} pothole(s) detected — severity auto-set to "{detectionResult.overall_severity_level}". Ready for submission.</p>
+                      <p className="text-xs font-bold text-orange-700">
+                        ⚠️ {potholeCount} pothole(s) detected
+                        {isVideo && detectionResult.frames_with_potholes ? ` across ${detectionResult.frames_with_potholes} frames` : ''}
+                        {' — '}severity auto-set to "{detectionResult.overall_severity_level}". Ready for submission.
+                      </p>
                     </div>
                   )}
                 </div>
-              )}
+                );
+              })()}
 
               <button
                 type="submit"
@@ -391,7 +446,7 @@ const ReportPage = () => {
                 className={`w-full py-6 rounded-3xl text-sm font-black uppercase tracking-[0.3em] shadow-2xl transition-all active:scale-95 flex items-center justify-center space-x-3 ${
                   !formData.imageUrl || !formData.latitude || detectingPotholes
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : detectionResult?.pothole_count > 0
+                    : (detectionResult?.pothole_count ?? detectionResult?.total_potholes_detected ?? 0) > 0
                       ? 'bg-red-600 text-white hover:bg-red-700'
                       : 'bg-[#1a237e] text-orange-400 hover:bg-[#283593] hover:text-white'
                 }`}
@@ -404,11 +459,11 @@ const ReportPage = () => {
                 ) : detectingPotholes ? (
                   <>
                     <BrainCircuit size={24} className="animate-pulse" />
-                    <span>AI Analyzing...</span>
+                    <span>AI Analyzing {isVideo ? 'Video' : 'Image'}...</span>
                   </>
-                ) : detectionResult?.pothole_count > 0 ? (
+                ) : (detectionResult?.pothole_count ?? detectionResult?.total_potholes_detected ?? 0) > 0 ? (
                   <>
-                    <span>🚨 Submit — {detectionResult.pothole_count} Pothole(s) Detected</span>
+                    <span>🚨 Submit — {detectionResult.pothole_count ?? detectionResult.total_potholes_detected} Pothole(s) Detected</span>
                     <ArrowRight size={24} />
                   </>
                 ) : (

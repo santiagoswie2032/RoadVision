@@ -17,11 +17,11 @@ Before running anything, make sure you have:
      - ultralytics, opencv-python-headless, numpy, Pillow
      - httpx, pydantic, requests
 
-If you DON'T have python3-venv installed (common on Ubuntu/WSL):
+If you DON'T have python venv installed (common on some Linux distros):
 
-  sudo apt install python3.12-venv
+  Ubuntu/WSL: sudo apt install python3.12-venv
 
-But the run script works WITHOUT it by using ml-pipeline/venv or global pip.
+The run script handles this by creating a venv automatically if possible.
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -40,12 +40,13 @@ If previous runs failed, clean up first:
 
 OPTION A — Use the existing ml-pipeline venv (recommended):
 
-  source ml-pipeline/venv/bin/activate
-  pip install fastapi uvicorn python-multipart httpx Pillow pydantic
+  source ml-pipeline/venv/bin/activate    # Linux/macOS
+  source ml-pipeline/venv/Scripts/activate # Windows
+  python -m pip install fastapi uvicorn python-multipart httpx Pillow pydantic
 
 OPTION B — Install globally:
 
-  pip install fastapi uvicorn python-multipart httpx ultralytics opencv-python-headless numpy Pillow pydantic requests
+  python -m pip install fastapi uvicorn python-multipart httpx ultralytics opencv-python-headless numpy Pillow pydantic requests
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -54,7 +55,7 @@ OPTION B — Install globally:
 
 OPTION A — One command (easiest):
 
-  cd /home/santiago/projects/RoadVision1
+  cd RoadVision1
   bash run_services.sh
 
   This starts all 3 services and runs health checks.
@@ -63,26 +64,26 @@ OPTION A — One command (easiest):
 OPTION B — Run each service manually (better for debugging):
 
   # Terminal 1: Activate venv
-  cd /home/santiago/projects/RoadVision1
-  source ml-pipeline/venv/bin/activate
+  cd RoadVision1
+  source services/.venv/bin/activate    # or services/.venv/Scripts/activate
 
   # Terminal 1: Inference Service
   cd services/inference-service
   MODEL_PATH=../../runs/detect/train2/weights/best.pt \
   STORAGE_DIR=../../storage/detections \
-  python3 main.py
+  python main.py
 
   # Terminal 2: Complaint Service
-  cd /home/santiago/projects/RoadVision1
-  source ml-pipeline/venv/bin/activate
+  cd RoadVision1
+  source services/.venv/bin/activate
   cd services/complaint-service
-  python3 main.py
+  python main.py
 
   # Terminal 3: Orchestrator
-  cd /home/santiago/projects/RoadVision1
-  source ml-pipeline/venv/bin/activate
+  cd RoadVision1
+  source services/.venv/bin/activate
   cd services/orchestrator
-  python3 main.py
+  python main.py
 
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -91,7 +92,7 @@ OPTION B — Run each service manually (better for debugging):
 
 Once services are running, open a NEW terminal and run:
 
-  cd /home/santiago/projects/RoadVision1
+  cd RoadVision1
 
 --- Health checks ---
 
