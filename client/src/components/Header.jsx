@@ -50,6 +50,18 @@ const Header = () => {
   const handleSearch = async (e) => {
     if (e.key !== 'Enter' || !searchQuery.trim()) return;
     setIsSearching(true);
+
+    // Deep Sync: Check for direct coordinate input (e.g. "21.12, 81.76")
+    const coordMatch = searchQuery.match(/^([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)$/);
+    if (coordMatch) {
+        const lat = parseFloat(coordMatch[1]);
+        const lng = parseFloat(coordMatch[3]);
+        setSearchCoords({ lat, lng, displayName: `Coordinates: ${lat}, ${lng}` });
+        setIsSearching(false);
+        if (location.pathname !== '/map') navigate('/map');
+        return;
+    }
+
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=in`);
       const data = await response.json();
@@ -82,7 +94,6 @@ const Header = () => {
     { title: t('nav.dashboard'), icon: <LayoutDashboard size={18} />, path: '/dashboard' },
     { title: t('nav.map'), icon: <Map size={18} />, path: '/map' },
     { title: t('nav.report'), icon: <FileText size={18} />, path: '/report' },
-    { title: t('nav.analytics'), icon: <BarChart3 size={18} />, path: '/analytics' },
     { title: t('nav.settings'), icon: <Settings size={18} />, path: '/settings' },
   ];
 

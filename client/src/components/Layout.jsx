@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Header from './Header';
 
 const Layout = ({ children }) => {
@@ -21,9 +22,9 @@ const Layout = ({ children }) => {
                 </div>
                 <div className="h-4 w-px bg-gray-300 hidden sm:block"></div>
                 <div className="flex space-x-4">
-                    <span>Terms</span>
-                    <span>Privacy</span>
-                    <span className="text-[#1a237e] font-bold tracking-tighter">INDIA PORTAL</span>
+                    <Link to="/terms" className="hover:text-[#1a237e] transition-colors cursor-pointer">Terms</Link>
+                    <Link to="/privacy" className="hover:text-[#1a237e] transition-colors cursor-pointer">Privacy</Link>
+                    <span className="text-[#1a237e] font-bold tracking-tighter cursor-help">INDIA PORTAL</span>
                 </div>
             </div>
         </div>

@@ -11,8 +11,9 @@ import MapPage from './pages/MapPage';
 import HomePage from './pages/HomePage';
 import WelcomePage from './pages/WelcomePage';
 import ReportPage from './pages/ReportPage';
-import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -88,16 +89,6 @@ const AppRoots = () => {
           } 
         />
 
-        <Route 
-          path="/analytics" 
-          element={
-            <ProtectedRoute>
-              <Layout>
-                <AnalyticsPage />
-              </Layout>
-            </ProtectedRoute>
-          } 
-        />
 
         <Route 
           path="/settings" 
@@ -109,6 +100,9 @@ const AppRoots = () => {
             </ProtectedRoute>
           } 
         />
+
+        <Route path="/terms" element={<Layout><Terms /></Layout>} />
+        <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

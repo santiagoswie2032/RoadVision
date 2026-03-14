@@ -3,19 +3,39 @@ import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import api from '../services/api';
 import { useLanguage } from '../hooks/useLanguage';
-import { 
-  AlertTriangle, 
-  AlertCircle, 
-  CheckCircle2, 
-  Clock3, 
-  MapPin, 
-  Search, 
-  Download, 
+import {
+  AlertTriangle,
+  AlertCircle,
+  CheckCircle2,
+  Clock3,
+  MapPin,
+  Search,
+  Download,
   Filter,
   Eye,
   MoreVertical,
-  Activity
+  LayoutDashboard,
+  Activity,
+  X
 } from 'lucide-react';
+import { SearchContext } from '../context/SearchContext';
+
+const calculateDistance = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
+
+const isMediaVideo = (url) => {
+  if (!url) return false;
+  // Check for common video extensions or data uri
+  return url.match(/\.(mp4|webm|ogg|mov)$/i) || url.startsWith('data:video');
+};
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -25,8 +45,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filterSeverity, setFilterSeverity] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useContext(AuthContext);
+  const { searchQuery, setSearchQuery, searchCoords } = useContext(SearchContext);
 
   useEffect(() => {
     fetchPotholes();
@@ -40,14 +60,44 @@ const Dashboard = () => {
     }
     
     if (searchQuery) {
-      result = result.filter(p => 
-        p.latitude.toString().includes(searchQuery) || 
-        p.longitude.toString().includes(searchQuery)
-      );
+      const q = searchQuery.toLowerCase();
+      const coordMatch = q.match(/^([-+]?\d+(\.\d+)?)\s*,\s*([-+]?\d+(\.\d+)?)$/);
+      
+      if (coordMatch) {
+        const latQ = parseFloat(coordMatch[1]);
+        const lngQ = parseFloat(coordMatch[3]);
+        result = result.filter(p => 
+          Math.abs(p.latitude - latQ) < 0.01 && Math.abs(p.longitude - lngQ) < 0.01
+        );
+      } else {
+        result = result.filter(p => 
+          p.latitude.toString().includes(q) || 
+          p.longitude.toString().includes(q) ||
+          p.status.toLowerCase().includes(q) ||
+          p.severityLevel.toLowerCase().includes(q) || // Match 'high', 'medium', 'low'
+          (q === 'critical' && p.severityLevel === 'high') || // Visual label match
+          (q === 'moderate' && p.severityLevel === 'medium') ||
+          (q === 'minor' && p.severityLevel === 'low') ||
+          (p.description && p.description.toLowerCase().includes(q))
+        );
+      }
+    }
+
+    if (searchCoords) {
+      // Proximity sync: filter by regional radius (100km) and sort by distance
+      result = result.filter(p => {
+        const dist = calculateDistance(p.latitude, p.longitude, searchCoords.lat, searchCoords.lng);
+        return dist < 100;
+      });
+      result.sort((a, b) => {
+        const distA = calculateDistance(a.latitude, a.longitude, searchCoords.lat, searchCoords.lng);
+        const distB = calculateDistance(b.latitude, b.longitude, searchCoords.lat, searchCoords.lng);
+        return distA - distB;
+      });
     }
     
     setFilteredPotholes(result);
-  }, [potholes, filterSeverity, searchQuery]);
+  }, [potholes, filterSeverity, searchQuery, searchCoords]);
 
   const fetchPotholes = async () => {
     try {
@@ -200,8 +250,16 @@ const Dashboard = () => {
               placeholder={t('dashboard.search_coord')} 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-64 lg:w-80 pl-10 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white text-left font-bold text-gray-900 placeholder-gray-400" 
+              className="w-full sm:w-64 lg:w-80 pl-10 pr-10 py-2 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#1a237e]/20 focus:border-[#1a237e] bg-white text-left font-bold text-gray-900 placeholder-gray-400" 
             />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
         
@@ -233,7 +291,17 @@ const Dashboard = () => {
                     <td className="px-6 md:px-8 py-4">
                       {pothole.imageUrl ? (
                         <div className="relative group w-16 h-12 md:w-20 md:h-14 mx-auto cursor-pointer">
-                           <img src={pothole.imageUrl} alt="Pothole" className="w-full h-full rounded-lg object-cover border-2 border-white shadow-sm" />
+                           {isMediaVideo(pothole.imageUrl) ? (
+                             <video 
+                               src={pothole.imageUrl} 
+                               className="w-full h-full rounded-lg object-cover border-2 border-white shadow-sm"
+                               muted
+                               onMouseOver={e => e.target.play()}
+                               onMouseOut={e => e.target.pause()}
+                             />
+                           ) : (
+                             <img src={pothole.imageUrl} alt="Pothole" className="w-full h-full rounded-lg object-cover border-2 border-white shadow-sm" />
+                           )}
                            <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                               <Eye size={16} className="text-white" />
                            </div>
@@ -300,7 +368,9 @@ const Dashboard = () => {
         </div>
         
         <div className="px-4 md:px-8 py-4 md:py-6 bg-gray-50 border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">{t('dashboard.showing_records', { count: filteredPotholes.length })}</p>
+           <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest text-center sm:text-left">
+             {t('dashboard.showing_records').replace('{{count}}', filteredPotholes.length)}
+           </p>
            <div className="flex space-x-2 w-full sm:w-auto">
               <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-300 rounded-lg uppercase tracking-tight">{t('dashboard.prev')}</button>
               <button disabled className="flex-1 sm:flex-none px-4 py-2 bg-white border border-gray-200 text-[10px] font-black text-gray-700 rounded-lg uppercase tracking-tight">{t('dashboard.next')}</button>

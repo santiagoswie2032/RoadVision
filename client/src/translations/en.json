@@ -113,7 +113,7 @@
     "profile_verify": "Profile Authorization"
   },
   "dashboard": {
-    "stats_detected": "Total Reported",
+    "stats_detected": "Total Reported Features",
     "stats_resolved": "Resolved Tickets",
     "stats_pending": "Pending Repairs",
     "stats_critical": "Critical Damage",

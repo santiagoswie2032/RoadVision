@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { useLanguage } from '../hooks/useLanguage';
 
@@ -196,6 +196,12 @@ const WelcomePage = () => {
              <img src={diLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="Digital India" />
              <img src={miLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="Make in India" />
              <img src={nhaiLogo} className="h-12 md:h-16 w-auto object-contain hover:scale-110 transition-all cursor-pointer bg-white/10 p-2 rounded-lg" alt="NHAI" />
+          </div>
+          <div className="flex justify-center space-x-6 mb-6 text-[10px] font-black uppercase tracking-widest text-[#1a237e]/60">
+             <Link to="/terms" className="hover:text-[#1a237e] transition-colors">Terms</Link>
+             <Link to="/privacy" className="hover:text-[#1a237e] transition-colors">Privacy</Link>
+             <span className="text-gray-300">|</span>
+             <span className="text-[#1a237e]">India Portal</span>
           </div>
           <div className="w-16 h-1 bg-[#ea580c] mx-auto mb-6 rounded-full"></div>
           <p className="text-[10px] md:text-xs text-gray-500 font-bold uppercase tracking-[0.2em] max-w-2xl mx-auto leading-loose">

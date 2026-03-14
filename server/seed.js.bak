@@ -26,6 +26,9 @@ const seedData = [
   { lat: 23.0225, lng: 72.5714, city: 'Ahmedabad' },
   // Pune
   { lat: 18.5204, lng: 73.8567, city: 'Pune' },
+  // Raipur Territory (As per screenshot context)
+  { lat: 21.2514, lng: 81.6296, city: 'Raipur' },
+  { lat: 21.1610, lng: 81.7870, city: 'Naya Raipur' },
 ];
 
 const generateDummyPotholes = () => {
