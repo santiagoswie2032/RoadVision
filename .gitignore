@@ -36,6 +36,8 @@ htmlcov/
 runs/
 storage/detections/
 pending-complaints/
+roadvision_full_backup.tar.gz
+*.tar.gz
 *.pt
 *.onnx
 *.weights
