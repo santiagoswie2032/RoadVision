@@ -31,24 +31,27 @@ const Layout = ({ children }) => {
   return (
     <div className={`flex flex-col h-screen w-full bg-[#f8faff] text-gray-900 overflow-hidden font-sans`}>
       {/* 1. ACCESSIBILITY TOP BAR */}
-      <div className="bg-[#1a237e] text-white py-1.5 px-4 md:px-8 flex justify-between items-center text-[10px] font-black uppercase tracking-[0.15em] border-b border-white/10">
-        <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-4">
-                <span className="text-white/60">Font Size:</span>
-                <button onClick={() => handleFontChange('small')} className={`hover:text-orange-400 ${fontSize === 'small' ? 'text-orange-400 underline underline-offset-4' : ''}`}>A-</button>
-                <button onClick={() => handleFontChange('medium')} className={`hover:text-orange-400 ${fontSize === 'medium' ? 'text-orange-400 underline underline-offset-4' : ''}`}>A</button>
-                <button onClick={() => handleFontChange('large')} className={`hover:text-orange-400 ${fontSize === 'large' ? 'text-orange-400 underline underline-offset-4' : ''}`}>A+</button>
+      <div className="bg-[#1a237e] text-white py-1 md:py-1.5 px-2 md:px-8 flex justify-between items-center text-[9px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.15em] border-b border-white/10">
+        <div className="flex items-center space-x-3 md:space-x-6">
+            <div className="flex items-center space-x-2 md:space-x-4">
+                <span className="text-white/60 hidden sm:inline">Font Size:</span>
+                <span className="text-white/60 sm:hidden">Font:</span>
+                <div className="flex items-center space-x-2 md:space-x-3">
+                  <button onClick={() => handleFontChange('small')} className={`hover:text-orange-400 transition-all ${fontSize === 'small' ? 'text-orange-400 border-b border-orange-400' : ''}`}>A-</button>
+                  <button onClick={() => handleFontChange('medium')} className={`hover:text-orange-400 transition-all ${fontSize === 'medium' ? 'text-orange-400 border-b border-orange-400' : ''}`}>A</button>
+                  <button onClick={() => handleFontChange('large')} className={`hover:text-orange-400 transition-all ${fontSize === 'large' ? 'text-orange-400 border-b border-orange-400' : ''}`}>A+</button>
+                </div>
             </div>
         </div>
         
-        <div className="flex items-center space-x-6">
+        <div className="flex items-center space-x-3 md:space-x-6">
             <div className="hidden lg:flex items-center space-x-4 border-r border-white/20 pr-6">
                 <a href="https://india.gov.in" target="_blank" rel="noreferrer" className="flex items-center hover:text-orange-400 transition-colors">India.gov.in <ExternalLink size={10} className="ml-1" /></a>
                 <a href="https://mygov.in" target="_blank" rel="noreferrer" className="flex items-center hover:text-orange-400 transition-colors">MyGov.in <ExternalLink size={10} className="ml-1" /></a>
             </div>
-            <p className="flex items-center bg-white/10 px-3 py-1 rounded-full border border-white/10">
-                <Activity size={10} className="mr-2 text-orange-400" />
-                Visitors: {reloadCount}
+            <p className="flex items-center bg-white/10 px-2 md:px-3 py-1 rounded-full border border-white/10 backdrop-blur-sm">
+                <Activity size={10} className="mr-1.5 text-orange-400 hidden xs:block" />
+                <span>Visitors: {reloadCount}</span>
             </p>
         </div>
       </div>
