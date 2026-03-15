@@ -4,7 +4,7 @@ WORKDIR /app/client
 
 # Copy package files and install
 COPY client/package*.json ./
-RUN npm install
+RUN npm install --legacy-peer-deps
 
 # Copy source and build
 COPY client/ ./
@@ -37,8 +37,9 @@ COPY --from=frontend-builder /app/client/dist ./client/dist
 RUN mkdir -p storage/detections
 
 # Set environment
-ENV PORT=8000
-EXPOSE 8000
+ENV PORT=10000
+EXPOSE 10000
 
 # Start application
-CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Note: Render provides a dynamic PORT, so we use shell form or $PORT
+CMD uvicorn server.main:app --host 0.0.0.0 --port $PORT
