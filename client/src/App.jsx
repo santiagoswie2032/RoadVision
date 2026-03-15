@@ -71,22 +71,18 @@ const AppRoots = () => {
         <Route 
           path="/map" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <MapPage />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <MapPage />
+            </Layout>
           } 
         />
 
         <Route 
           path="/report" 
           element={
-            <ProtectedRoute>
-              <Layout>
-                <ReportPage />
-              </Layout>
-            </ProtectedRoute>
+            <Layout>
+              <ReportPage />
+            </Layout>
           } 
         />
 

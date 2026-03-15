@@ -94,10 +94,10 @@ const Header = () => {
 
   const navItems = [
     { title: t('nav.home'), icon: <Home size={18} />, path: '/' },
-    { title: t('nav.dashboard'), icon: <LayoutDashboard size={18} />, path: '/dashboard' },
+    ...(user ? [{ title: t('nav.dashboard'), icon: <LayoutDashboard size={18} />, path: '/dashboard' }] : []),
     { title: t('nav.map'), icon: <Map size={18} />, path: '/map' },
     { title: t('nav.report'), icon: <FileText size={18} />, path: '/report' },
-    { title: t('nav.settings'), icon: <Settings size={18} />, path: '/settings' },
+    ...(user ? [{ title: t('nav.settings'), icon: <Settings size={18} />, path: '/settings' }] : []),
   ];
 
   return (
@@ -190,28 +190,40 @@ const Header = () => {
                   )}
               </button>
 
-              <div className="hidden md:flex items-center space-x-3 pl-4 border-l border-gray-100 group cursor-pointer relative">
-                <div className="w-9 h-9 rounded-xl bg-[#1a237e] border-2 border-orange-500 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
-                  <span className="text-xs font-black text-white uppercase tracking-tighter">
-                    {user?.name ? user.name.split(' ').map(n => n[0]).join('') : 'O'}
-                  </span>
+              {user ? (
+                <div className="hidden md:flex items-center space-x-3 pl-4 border-l border-gray-100 group cursor-pointer relative">
+                  <div className="w-9 h-9 rounded-xl bg-[#1a237e] border-2 border-orange-500 flex items-center justify-center shrink-0 shadow-lg group-hover:scale-105 transition-transform">
+                    <span className="text-xs font-black text-white uppercase tracking-tighter">
+                      {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col text-left">
+                    <span className="text-[10px] font-black text-[#1a237e] uppercase leading-none truncate w-24">
+                      {user.name}
+                    </span>
+                    <span className="text-[9px] font-bold text-orange-500 uppercase leading-none mt-1 opacity-70">
+                      {user.role === 'admin' ? 'Administrator' : 'Field Officer'}
+                    </span>
+                  </div>
+                  <div 
+                     onClick={logout}
+                     className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all ml-1"
+                     title="Logout"
+                  >
+                    <LogOut size={18} />
+                  </div>
                 </div>
-                <div className="flex flex-col text-left">
-                  <span className="text-[10px] font-black text-[#1a237e] uppercase leading-none truncate w-24">
-                    {user?.name || t('common.officer')}
-                  </span>
-                  <span className="text-[9px] font-bold text-orange-500 uppercase leading-none mt-1 opacity-70">
-                    {user?.role === 'admin' ? 'Administrator' : 'Field Officer'}
-                  </span>
+              ) : (
+                <div className="hidden md:flex items-center pl-4 border-l border-gray-100">
+                  <Link 
+                    to="/login"
+                    className="flex items-center space-x-2 px-4 py-2 bg-[#1a237e] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all shadow-lg shadow-blue-900/10"
+                  >
+                    <span>Login / Join</span>
+                    <LogOut size={14} className="rotate-180" />
+                  </Link>
                 </div>
-                <div 
-                   onClick={logout}
-                   className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all ml-1"
-                   title="Logout"
-                >
-                  <LogOut size={18} />
-                </div>
-              </div>
+              )}
           </div>
         </div>
       </div>

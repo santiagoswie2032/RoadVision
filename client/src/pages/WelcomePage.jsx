@@ -91,7 +91,7 @@ const WelcomePage = () => {
               
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <button 
-                  onClick={() => navigate(user ? '/dashboard' : '/login')}
+                  onClick={() => navigate('/map')}
                   className="w-full sm:w-auto px-10 py-5 bg-[#1a237e] text-white rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-[#283593] shadow-2xl shadow-blue-900/40 transition-all hover:scale-105 active:scale-95 flex items-center justify-center"
                 >
                   {t('welcome.cta_dashboard')}
@@ -100,7 +100,7 @@ const WelcomePage = () => {
                 {!user && (
                     <button 
                         onClick={() => navigate('/login')}
-                        className="w-full sm:w-auto px-10 py-5 bg-white text-[#1a237e] border-2 border-[#1a237e] rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-[#f8faff] transition-all flex items-center justify-center"
+                        className="w-full sm:w-auto px-10 py-5 bg-white text-[#1a237e] border-2 border-gray-100 rounded-2xl font-black text-lg uppercase tracking-widest hover:bg-[#f8faff] transition-all flex items-center justify-center"
                     >
                         {t('welcome.cta_login')}
                     </button>
