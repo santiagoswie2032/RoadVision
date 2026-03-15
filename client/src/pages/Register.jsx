@@ -39,7 +39,16 @@ const Register = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      setError(err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || 'Official registration failed.');
+      console.error('Registration error:', err);
+      if (err.response) {
+        // Server responded with an error status
+        setError(err.response.data?.message || err.response.data?.errors?.[0]?.msg || `Server error (${err.response.status})`);
+      } else if (err.request) {
+        // Request was made but no response received (network error / server down / timeout)
+        setError('Cannot reach the server. Please check that the backend is running on port 5000 and MongoDB is connected.');
+      } else {
+        setError('Registration failed: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }

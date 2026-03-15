@@ -17,7 +17,7 @@ import { useLanguage } from '../hooks/useLanguage';
 import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
-const INFERENCE_URL = import.meta.env.VITE_INFERENCE_URL || 'http://localhost:8001';
+const INFERENCE_URL = import.meta.env.VITE_INFERENCE_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000');
 
 const ReportPage = () => {
   const { t } = useLanguage();
@@ -111,8 +111,8 @@ const ReportPage = () => {
       if (formData.latitude) mlFormData.append('latitude', formData.latitude);
       if (formData.longitude) mlFormData.append('longitude', formData.longitude);
 
-      // Pick the right endpoint based on file type
-      const endpoint = fileIsVideo ? '/v1/detections/video' : '/v1/detections/image';
+      // Unified endpoints for single Docker deploy
+      const endpoint = fileIsVideo ? '/predict-video' : '/predict-image';
 
       const mlResp = await fetch(`${INFERENCE_URL}${endpoint}`, {
         method: 'POST',
@@ -128,7 +128,7 @@ const ReportPage = () => {
       setDetectionResult(detection);
 
       if (fileIsVideo) {
-        // Video: use annotated_video_url
+        // Video: use annotated_video_url (if provided by server)
         if (detection.annotated_video_url) {
           const vidUrl = detection.annotated_video_url.startsWith('http')
             ? detection.annotated_video_url
