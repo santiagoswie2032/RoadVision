@@ -167,8 +167,15 @@ const MapPage = () => {
     }
   };
 
+  const [navigationTarget, setNavigationTarget] = useState(null);
+
   const handleNavigate = (p) => {
-    window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.latitude},${p.longitude}&travelmode=driving`, '_blank');
+    setNavigationTarget({ lat: p.latitude, lng: p.longitude });
+    // Scroll to map if needed
+    const mapElement = document.getElementById('main-map-container');
+    if (mapElement) {
+      mapElement.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   // Analytics Helpers
@@ -346,7 +353,7 @@ const MapPage = () => {
       )}
 
       {/* Map Container */}
-      <div className="h-[500px] mb-8 relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100 shrink-0">
+      <div id="main-map-container" className="h-[500px] mb-8 relative rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl border border-gray-100 shrink-0">
         {loading ? (
              <div className="absolute inset-0 bg-white/60 backdrop-blur-sm z-50 flex items-center justify-center">
                 <div className="flex flex-col items-center">
@@ -362,6 +369,9 @@ const MapPage = () => {
                  nearestPotholeId={nearestPothole?._id} 
                  userLocation={userPos} 
                  showMarkers={!isHealthView}
+                 navigationTarget={navigationTarget}
+                 onNavigationCleared={() => setNavigationTarget(null)}
+                 setNavigationTarget={setNavigationTarget}
                >
                  {isHealthView && userPos && (
                    <RoutePlanner 

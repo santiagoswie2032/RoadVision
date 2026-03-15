@@ -3,6 +3,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, LayersControl, LayerGro
 import { useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import 'leaflet-routing-machine';
+import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 
 // Fix for default marker icon issues in React
 const createCustomIcon = (color) => {
@@ -31,10 +33,55 @@ const RecenterMap = ({ center }) => {
   return null;
 };
 
+// Routing Machine Component
+const RoutingMachine = ({ userLocation, targetLocation, onCleared }) => {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !userLocation || !targetLocation) return;
+
+    const routingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userLocation.lat, userLocation.lng),
+        L.latLng(targetLocation.lat, targetLocation.lng)
+      ],
+      routeWhileDragging: false,
+      addWaypoints: false,
+      fitSelectedRoutes: true,
+      showAlternatives: false,
+      lineOptions: {
+        styles: [{ color: '#1a237e', opacity: 0.8, weight: 6 }]
+      },
+      createMarker: () => null // Hide default markers as we have our own
+    }).addTo(map);
+
+    return () => {
+      try {
+        if (map && routingControl) {
+          map.removeControl(routingControl);
+        }
+      } catch (err) {
+        console.warn("Routing control removal failed:", err);
+      }
+    };
+  }, [map, userLocation, targetLocation]);
+
+  return (
+    <div className="absolute top-4 left-4 z-[1000]">
+      <button 
+        onClick={onCleared}
+        className="bg-[#1a237e] text-white px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl hover:bg-red-600 transition-all"
+      >
+        Clear Navigation
+      </button>
+    </div>
+  );
+};
+
 import { SettingsContext } from '../context/SettingsContext';
 import { SearchContext } from '../context/SearchContext';
 
-const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPotholeId, showMarkers = true, children }) => {
+const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPotholeId, showMarkers = true, navigationTarget, onNavigationCleared, setNavigationTarget, children }) => {
   const navigate = useNavigate();
   const { gpsEnabled } = useContext(SettingsContext);
   const { searchCoords } = useContext(SearchContext);
@@ -198,12 +245,22 @@ const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPot
                           </div>
                         )}
                         
-                        <button 
-                          onClick={() => navigate(`/report?lat=${pothole.latitude}&lng=${pothole.longitude}&severity=${pothole.severityLevel}`)}
-                          className="w-full py-2 bg-[#1a237e] text-white text-[10px] font-bold rounded-lg hover:bg-[#283593] transition-colors uppercase tracking-widest"
-                        >
-                          Log Maintenance Request
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                           <button 
+                             onClick={() => navigate(`/report?lat=${pothole.latitude}&lng=${pothole.longitude}&severity=${pothole.severityLevel}`)}
+                             className="py-2 bg-gray-100 text-[#1a237e] text-[9px] font-bold rounded-lg hover:bg-gray-200 transition-colors uppercase tracking-widest"
+                           >
+                             Report
+                           </button>
+                           <button 
+                             onClick={() => {
+                               setNavigationTarget({ lat: pothole.latitude, lng: pothole.longitude });
+                             }}
+                             className="py-2 bg-[#1a237e] text-white text-[9px] font-bold rounded-lg hover:bg-[#283593] transition-colors uppercase tracking-widest"
+                           >
+                             Navigate
+                           </button>
+                        </div>
                       </div>
                     </Popup>
                   </Marker>
@@ -264,6 +321,15 @@ const PotholeMap = ({ potholes, activeLayer = 'street', userLocation, nearestPot
 
         {/* Render health-based routes */}
         {children}
+
+        {/* Routing Machine Integration */}
+        {userLocation && navigationTarget && (
+          <RoutingMachine 
+            userLocation={userLocation} 
+            targetLocation={navigationTarget} 
+            onCleared={onNavigationCleared}
+          />
+        )}
       </MapContainer>
 
       {/* Re-center Button */}
