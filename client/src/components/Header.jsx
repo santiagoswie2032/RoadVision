@@ -13,7 +13,8 @@ import {
   Settings,
   LogOut,
   Home,
-  ChevronDown
+  ChevronDown,
+  Filter
 } from 'lucide-react';
 import { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -36,6 +37,7 @@ const Header = () => {
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
 
   useEffect(() => {
     if (notificationsEnabled) {
@@ -129,20 +131,50 @@ const Header = () => {
 
         {/* Right: Global Actions & PM Portrait */}
         <div className="flex items-center space-x-3 md:space-x-6">
-          <div className="relative hidden xl:block">
-            {isSearching ? (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 animate-spin w-4 h-4 border-2 border-[#1a237e] border-t-transparent rounded-full"></div>
-            ) : (
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <div className="relative hidden xl:flex items-center space-x-2">
+            <div className="relative">
+                {isSearching ? (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 animate-spin w-4 h-4 border-2 border-[#1a237e] border-t-transparent rounded-full"></div>
+                ) : (
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                )}
+                <input 
+                type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearch}
+                placeholder={t('header.search')}
+                className="pl-10 pr-10 py-2.5 border border-gray-100 rounded-2xl bg-gray-50 text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e]/30 w-48 xl:w-64 transition-all shadow-inner"
+                />
+                <button 
+                  onClick={() => setIsAdvancedSearchOpen(!isAdvancedSearchOpen)}
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg transition-colors ${isAdvancedSearchOpen ? 'bg-orange-100 text-orange-600' : 'text-gray-400 hover:text-gray-600'}`}
+                  title="Advanced Filters"
+                >
+                  <Filter size={14} />
+                </button>
+            </div>
+
+            {isAdvancedSearchOpen && (
+              <div className="absolute top-full mt-2 left-0 w-64 bg-white rounded-2xl shadow-2xl border border-gray-100 p-4 z-[150] animate-in fade-in slide-in-from-top-2">
+                 <p className="text-[10px] font-black text-[#1a237e] uppercase tracking-widest mb-3 italic underline underline-offset-4">Advanced Query Console</p>
+                 <div className="space-y-3">
+                    <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block">Severity Index</label>
+                        <select className="w-full bg-gray-50 border border-gray-100 rounded-lg py-1.5 px-2 text-[10px] font-bold text-gray-700 outline-none focus:border-orange-200">
+                            <option>All Hazards</option>
+                            <option>Critical Only</option>
+                            <option>Minor Debris</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-black text-gray-400 uppercase mb-1 block">Date Horizon</label>
+                        <input type="date" className="w-full bg-gray-50 border border-gray-100 rounded-lg py-1.5 px-2 text-[10px] font-bold text-gray-700 outline-none" />
+                    </div>
+                    <button className="w-full py-2 bg-[#1a237e] text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-xl hover:bg-orange-600 transition-colors shadow-lg shadow-blue-900/10">Apply Intelligence</button>
+                 </div>
+              </div>
             )}
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearch}
-              placeholder={t('header.search')}
-              className="pl-10 pr-4 py-2.5 border border-gray-100 rounded-2xl bg-gray-50 text-sm font-bold text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#1a237e]/5 focus:border-[#1a237e]/30 w-48 xl:w-64 transition-all shadow-inner"
-            />
           </div>
 
           <div className="flex items-center space-x-2 md:space-x-4">

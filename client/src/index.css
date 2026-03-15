@@ -23,6 +23,12 @@ h1, h2, h3, h4 {
   line-height: 1.2;
 }
 
+/* Accessibility Font Resizer */
+html[data-font-size="small"] { font-size: 14px; }
+html[data-font-size="medium"] { font-size: 16px; }
+html[data-font-size="large"] { font-size: 18px; }
+html[data-font-size="xlarge"] { font-size: 20px; }
+
 h1 { font-size: 1.5rem; }
 @media (min-width: 768px) { h1 { font-size: 1.875rem; } }
 @media (min-width: 1024px) { h1 { font-size: 2.25rem; } }

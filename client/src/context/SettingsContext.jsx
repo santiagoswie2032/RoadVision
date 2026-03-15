@@ -13,6 +13,11 @@ export const SettingsProvider = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true;
   });
 
+  const [fontSize, setFontSize] = useState(() => {
+    const saved = localStorage.getItem('fontSize');
+    return saved || 'medium';
+  });
+
   const [dismissedAlerts, setDismissedAlerts] = useState([]);
 
   useEffect(() => {
@@ -23,6 +28,11 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('notificationsEnabled', JSON.stringify(notificationsEnabled));
   }, [notificationsEnabled]);
 
+  useEffect(() => {
+    localStorage.setItem('fontSize', fontSize);
+    document.documentElement.setAttribute('data-font-size', fontSize);
+  }, [fontSize]);
+
   return (
     <SettingsContext.Provider 
       value={{ 
@@ -30,6 +40,8 @@ export const SettingsProvider = ({ children }) => {
         setGpsEnabled, 
         notificationsEnabled, 
         setNotificationsEnabled,
+        fontSize,
+        setFontSize,
         dismissedAlerts,
         setDismissedAlerts
       }}

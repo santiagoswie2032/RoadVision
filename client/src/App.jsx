@@ -14,6 +14,7 @@ import ReportPage from './pages/ReportPage';
 import SettingsPage from './pages/SettingsPage';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import PortalDetails from './pages/PortalDetails';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -103,6 +104,7 @@ const AppRoots = () => {
 
         <Route path="/terms" element={<Layout><Terms /></Layout>} />
         <Route path="/privacy" element={<Layout><Privacy /></Layout>} />
+        <Route path="/portal" element={<Layout><PortalDetails /></Layout>} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
