@@ -41,6 +41,10 @@ roadvision_full_backup.tar.gz
 *.pt
 *.onnx
 *.weights
+# Allow the production model
+!ml-pipeline/best.pt
+# Allow the production model for the inference service
+!services/inference-service/model/best.pt
 
 # ── Media & Datasets ──
 # (Keep source assets in specialized folders, ignore test data)

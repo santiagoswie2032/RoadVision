@@ -5,10 +5,15 @@ import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/authRoutes.js';
 import potholeRoutes from './routes/potholeRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -18,10 +23,20 @@ const PORT = process.env.PORT || 5000;
 // Security Middlewares
 app.use(helmet({
   crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false, // Allow inline scripts from React build
 }));
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: true, // For development, let's be more permissive
+    origin: process.env.NODE_ENV === 'production'
+      ? allowedOrigins
+      : true,
     credentials: true,
   }),
 );
@@ -46,6 +61,20 @@ app.use('/api/potholes', potholeRoutes);
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "API is running" });
 });
+
+// ── Serve React client in production ──
+if (process.env.NODE_ENV === 'production') {
+  const clientBuild = path.resolve(__dirname, '..', 'client', 'dist');
+  app.use(express.static(clientBuild));
+
+  // Any non-API route → serve React's index.html (SPA routing)
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next(); // Let notFound middleware handle API 404s
+    }
+    res.sendFile(path.join(clientBuild, 'index.html'));
+  });
+}
 
 app.use(notFound);
 app.use(errorHandler);

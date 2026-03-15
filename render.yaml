@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────
+# RoadVision — Render Blueprint (render.yaml)
+# Deploys: Client + Server (1 Node service),
+#          Inference Service, Complaint Service, Orchestrator
+# ─────────────────────────────────────────────────
+
+services:
+  # ── 1. Web App: Node.js Server + React Client ──
+  - type: web
+    name: roadvision-app
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: .
+    buildCommand: |
+      cd client && npm install && npm run build &&
+      cd ../server && npm install
+    startCommand: cd server && node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGO_URI
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CLIENT_URL
+        value: https://roadvision-app.onrender.com
+      - key: VITE_INFERENCE_URL
+        value: https://roadvision-inference.onrender.com
+
+  # ── 2. Inference Service (Python + YOLOv8 Model) ──
+  - type: web
+    name: roadvision-inference
+    runtime: docker
+    region: oregon
+    plan: free
+    rootDir: services/inference-service
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: MODEL_PATH
+        value: /app/model/best.pt
+      - key: STORAGE_DIR
+        value: /app/storage/detections
+      - key: INFERENCE_PORT
+        value: "8001"
+
+  # ── 3. Complaint Service (Python) ──
+  - type: web
+    name: roadvision-complaints
+    runtime: docker
+    region: oregon
+    plan: free
+    rootDir: services/complaint-service
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: COMPLAINT_ADAPTER
+        value: mock
+      - key: COMPLAINT_PORT
+        value: "8002"
+
+  # ── 4. Orchestrator (Python) ──
+  - type: web
+    name: roadvision-orchestrator
+    runtime: docker
+    region: oregon
+    plan: free
+    rootDir: services/orchestrator
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: INFERENCE_SERVICE_URL
+        value: https://roadvision-inference.onrender.com
+      - key: COMPLAINT_SERVICE_URL
+        value: https://roadvision-complaints.onrender.com
+      - key: ORCHESTRATOR_PORT
+        value: "8000"

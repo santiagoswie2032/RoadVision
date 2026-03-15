@@ -11,7 +11,7 @@ BACKEND_API_URL = os.getenv("BACKEND_API_URL", "http://localhost:5000/api")
 
 # Server
 HOST = os.getenv("ORCHESTRATOR_HOST", "0.0.0.0")
-PORT = int(os.getenv("ORCHESTRATOR_PORT", "8000"))
+PORT = int(os.getenv("PORT", os.getenv("ORCHESTRATOR_PORT", "8000")))
 
 # Scheduler settings
 REVERIFY_CRON = os.getenv("REVERIFY_CRON", "0 */6 * * *")  # every 6 hours

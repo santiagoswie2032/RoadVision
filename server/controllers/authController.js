@@ -39,7 +39,7 @@ export const registerUser = async (req, res) => {
       res.cookie('jwt', token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'strict',
         maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
       });
 
@@ -53,8 +53,15 @@ export const registerUser = async (req, res) => {
       res.status(400).json({ message: 'Invalid user data' });
     }
   } catch (error) {
-    console.error('Registration Error Details:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Registration Error Details:', error.name, error.message);
+    if (error.name === 'MongoServerError' && error.code === 11000) {
+      return res.status(400).json({ message: 'User already exists (duplicate key)' });
+    }
+    if (error.name === 'MongooseServerSelectionError' || error.name === 'MongoServerSelectionError') {
+      console.error('MongoDB connection issue — check Atlas IP whitelist or network connectivity');
+      return res.status(503).json({ message: 'Database connection failed. Server cannot reach MongoDB.' });
+    }
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 };
 

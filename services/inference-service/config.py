@@ -25,7 +25,8 @@ STORAGE_URL_PREFIX = os.getenv("STORAGE_URL_PREFIX", "/static/detections")
 
 # ── Server ─────────────────────────────────────────────
 HOST = os.getenv("INFERENCE_HOST", "0.0.0.0")
-PORT = int(os.getenv("INFERENCE_PORT", "8001"))
+# Render sets PORT dynamically; fall back to INFERENCE_PORT or 8001
+PORT = int(os.getenv("PORT", os.getenv("INFERENCE_PORT", "8001")))
 
 # ── Severity tuning ───────────────────────────────────
 SEVERITY_BBOX_WEIGHT = float(os.getenv("SEVERITY_BBOX_WEIGHT", "0.6"))
