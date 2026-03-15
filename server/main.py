@@ -7,6 +7,7 @@ from typing import List, Optional
 
 import cv2
 import numpy as np
+import torch
 from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
 from fastapi.responses import JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -109,7 +110,9 @@ async def predict_image(file: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail="Invalid image")
 
     h, w = frame.shape[:2]
-    results = model(frame, conf=0.25)[0]
+    # Optimize for memory: use small image size and no_grad
+    with torch.no_grad():
+        results = model(frame, conf=0.25, imgsz=320)[0]
     
     potholes = []
     confs = []
