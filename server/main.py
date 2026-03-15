@@ -29,7 +29,10 @@ MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://nikhilsingh260406_db_user:9Hcs
 
 # --- Database Setup ---
 client = AsyncIOMotorClient(MONGO_URI)
-db = client.get_default_database() or client["RoadVision"]
+# Avoid truth value testing of Database objects (fixes NotImplementedError)
+db = client.get_default_database()
+if db is None:
+    db = client["RoadVision"]
 potholes_collection = db["potholes"]
 
 # --- Model Lifecycle ---
